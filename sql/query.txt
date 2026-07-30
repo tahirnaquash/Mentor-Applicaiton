@@ -1,0 +1,783 @@
+CREATE TABLE device_tokens (
+    token_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
+    device_type VARCHAR(50), -- 'ios', 'android', 'web'
+    push_token TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE student_wellbeing_logs (
+    log_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id VARCHAR(50) NOT NULL,
+    sentiment_score NUMERIC(3,2), -- Derived from AI analyzing chat/notes (-1.00 to 1.00)
+    stress_indicator_flag BOOLEAN DEFAULT FALSE,
+    logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- 1. Create System Audit Matrix for Security Logs (slowapi blocks, system events)
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    event_type VARCHAR(50) NOT NULL, -- 'RATE_LIMIT', 'AUTH_FAIL', 'USER_PROVISION', 'COHORT_REALLOC'
+    severity VARCHAR(20) DEFAULT 'INFO',
+    details TEXT NOT NULL,
+    ip_address VARCHAR(45)
+);
+
+-- 2. Create Performance Audit Registry for Data Sanitation Audits
+CREATE TABLE IF NOT EXISTS performance_metrics (
+    id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    active_connections INTEGER NOT NULL,
+    response_time_ms REAL NOT NULL,
+    db_pool_status VARCHAR(50) DEFAULT 'OPTIMAL'
+);
+
+-- 3. Create Counseling Logs Table with Explicit Structural Privacy Protection
+-- Notice that logs are fully separated. The plaintext 'session_notes' is NOT accessible via standard queries.
+CREATE TABLE IF NOT EXISTS counseling_records (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    counselor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    encrypted_session_notes TEXT NOT NULL, -- Access restricted by application logic layer
+    summary_flag VARCHAR(50) DEFAULT 'STANDARD_COUNSELING' -- Admin can ONLY see aggregate totals of this column
+);
+
+
+
+3. Mentoring & Counseling Activity Layer
+mentoring_sessions (Interaction Ledger)
+Tracks communication and mentoring frequency. Essential for institutional compliance reports showing whether mentors are meeting their allocated student quotas.
+
+id (INT, Primary Key)
+
+relation_id (INT, ForeignKey links to mentorship_relations.id)
+
+session_date (DATETIME): Timestamp when the review took place.
+
+discussion_summary (TEXT): Encrypted or plain text summary of progress notes.
+
+action_items (TEXT): Deadlines or targets set for the student.
+
+category (VARCHAR): ENUM ('Routine Academic Review', 'Disciplinary', 'Career Counseling').
+
+counseling_escalations (Critical Cases)
+Tracks students referred to professional psychological counselors or head administrators for special interventions.
+
+id (INT, Primary Key)
+
+student_id (INT, ForeignKey links to users.id)
+
+referred_by_id (INT, ForeignKey links to users.id)
+
+counselor_id (INT, ForeignKey links to users.id, Nullable)
+
+escalation_reason (TEXT): Context regarding why academic thresholds failed to correct behavior.
+
+resolution_status (VARCHAR): ENUM ('Pending', 'Under Review', 'Resolved').
+
+4. Configuration & Security Metadata Layer
+system_configurations (Multi-Tenant Threshold Thresholds)
+Rather than hardcoding academic failure values, this table dynamically dictates what triggers alert flags in reports based on the department or institution.
+
+id (INT, Primary Key)
+
+department (VARCHAR): Unique target domain (e.g., "Global", "Computer Science").
+
+attendance_threshold (FLOAT): Minimum required attendance percentage (e.g., 75.0).
+
+cgpa_threshold (FLOAT): Minimum expected passing CGPA baseline (e.g., 6.5).
+
+term_name (VARCHAR): Current active operational term context string.
+
+audit_logs (Security & Accountability Tracking)
+Crucial for institutional audit data, proving who altered records, when batch processes executed, and validating compliance.
+
+id (INT, Primary Key)
+
+timestamp (DATETIME): Auto-generated database entry server time.
+
+user_id (INT, ForeignKey links to users.id): The entity who initiated the action.
+
+event_type (VARCHAR): ENUM ('ACCOUNT_PROVISION', 'PASSWORD_MUTATION', 'BATCH_CSV_UPLOAD').
+
+details (TEXT): String describing exactly what row data changed.
+
+ip_address (VARCHAR): Network tracer metadata.
+
+
+
+-- =========================================================
+-- 1. EXTENSIONS & MASTER ENUMS (If using PostgreSQL)
+-- =========================================================
+CREATE TYPE evaluation_type_enum AS ENUM ('IA-1', 'IA-2', 'SEE');
+
+-- =========================================================
+-- 2. NEW STANDALONE STUDENT PROFILE REGISTRY
+-- =========================================================
+CREATE TABLE student_info (
+    id SERIAL PRIMARY KEY,
+    
+    -- Links back securely to your untouched 'users' table
+    student_id INTEGER NOT NULL UNIQUE,
+    
+    -- Personal Demographics
+    father_name VARCHAR(255),
+    mother_name VARCHAR(255),
+    guardian_name VARCHAR(255),
+    
+    phone_number VARCHAR(50),
+    fathers_phone VARCHAR(50),
+    mothers_phone VARCHAR(50),
+    address TEXT,
+    
+    -- Pre-University Metrics
+    tenth_percentage FLOAT,
+    twelfth_percentage FLOAT,
+    diploma_percentage FLOAT,
+    
+    CONSTRAINT fk_student_user_account 
+        FOREIGN KEY (student_id) 
+        REFERENCES users(id) 
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- 3. ACADEMIC SNAPSHOT HISTORY TRACKER
+-- =========================================================
+CREATE TABLE academic_records (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    semester INTEGER NOT NULL,            -- Active value (1 through 8)
+    semester_gpa FLOAT DEFAULT 0.0,
+    cumulative_cgpa FLOAT DEFAULT 0.0,
+    overall_attendance FLOAT DEFAULT 100.0,
+    backlogs_count INTEGER DEFAULT 0,
+    
+    CONSTRAINT fk_academic_student 
+        FOREIGN KEY (student_id) 
+        REFERENCES users(id) 
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- 4. MASTER COURSE CATALOG INVENTORY
+-- =========================================================
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    course_code VARCHAR(100) NOT NULL UNIQUE, -- e.g., 'CS401'
+    course_name VARCHAR(255) NOT NULL,        -- e.g., 'Operating Systems'
+    assigned_semester INTEGER NOT NULL,       -- 1 through 8
+    department VARCHAR(255) NOT NULL          -- e.g., 'Computer Science'
+);
+
+-- =========================================================
+-- 5. COURSE ENROLLMENT RELATIONSHIP BRIDGE
+-- =========================================================
+CREATE TABLE course_registrations (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    course_id INTEGER NOT NULL,
+    semester INTEGER NOT NULL,                -- Active value (1 through 8)
+    academic_year VARCHAR(50) NOT NULL,       -- e.g., '2025-2026'
+    
+    CONSTRAINT fk_registration_student 
+        FOREIGN KEY (student_id) 
+        REFERENCES users(id) 
+        ON DELETE CASCADE,
+    CONSTRAINT fk_registration_course 
+        FOREIGN KEY (course_id) 
+        REFERENCES courses(id) 
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- 6. PERIODIC MILESTONE MARKS LEDGER
+-- =========================================================
+CREATE TABLE marks_ledger (
+    id SERIAL PRIMARY KEY,
+    registration_id INTEGER NOT NULL,
+    
+    -- Periodic Checkpoint Flag Mapping
+    evaluation_type evaluation_type_enum NOT NULL, -- 'IA-1', 'IA-2', 'SEE'
+    
+    marks_obtained FLOAT DEFAULT NULL,             -- Null until milestone grading occurs
+    max_marks FLOAT DEFAULT 20.0,
+    attendance_percentage FLOAT DEFAULT NULL,      -- Attendance tracking split up to checkpoint
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_ledger_registration 
+        FOREIGN KEY (registration_id) 
+        REFERENCES course_registrations(id) 
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- 7. PERFORMANCE ACCELERATION INDEXES
+-- =========================================================
+CREATE INDEX idx_student_info_uid ON student_info(student_id);
+CREATE INDEX idx_academic_records_sid ON academic_records(student_id);
+CREATE INDEX idx_course_reg_sid ON course_registrations(student_id);
+CREATE INDEX idx_marks_ledger_reg_id ON marks_ledger(registration_id);
+
+-- =========================================================
+-- 1. ENUMS (If using PostgreSQL)
+-- =========================================================
+CREATE TYPE evaluation_type_enum AS ENUM ('IA-1', 'IA-2', 'SEE');
+
+-- =========================================================
+-- 2. NEW STANDALONE STUDENT PROFILE REGISTRY
+-- =========================================================
+CREATE TABLE student_info (
+    -- The Primary Key is now a VARCHAR string storing the USN directly
+    student_id VARCHAR(50) PRIMARY KEY,
+    
+    -- Personal Demographics
+    father_name VARCHAR(255),
+    mother_name VARCHAR(255),
+    guardian_name VARCHAR(255),
+    
+    phone_number VARCHAR(50),
+    fathers_phone VARCHAR(50),
+    mothers_phone VARCHAR(50),
+    address TEXT,
+    
+    -- Pre-University Metrics
+    tenth_percentage FLOAT,
+    twelfth_percentage FLOAT,
+    diploma_percentage FLOAT,
+    
+    -- Links back securely to your 'users' table using the USN string format
+    CONSTRAINT fk_student_user_account 
+        FOREIGN KEY (student_id) 
+        REFERENCES users(usn_or_id) 
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- 3. ACADEMIC SNAPSHOT HISTORY TRACKER
+-- =========================================================
+CREATE TABLE academic_records (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,      -- Changed from INTEGER to VARCHAR
+    semester INTEGER NOT NULL,             -- Active value (1 through 8)
+    semester_gpa FLOAT DEFAULT 0.0,
+    cumulative_cgpa FLOAT DEFAULT 0.0,
+    overall_attendance FLOAT DEFAULT 100.0,
+    backlogs_count INTEGER DEFAULT 0,
+    
+    CONSTRAINT fk_academic_student 
+        FOREIGN KEY (student_id) 
+        REFERENCES student_info(student_id) 
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- 4. MASTER COURSE CATALOG INVENTORY
+-- =========================================================
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    course_code VARCHAR(100) NOT NULL UNIQUE, -- e.g., '18CS51'
+    course_name VARCHAR(255) NOT NULL,        -- e.g., 'Computer Networks'
+    assigned_semester INTEGER NOT NULL,       -- 1 through 8
+    department VARCHAR(255) NOT NULL          -- e.g., 'Computer Science'
+);
+
+-- =========================================================
+-- 5. COURSE ENROLLMENT RELATIONSHIP BRIDGE
+-- =========================================================
+CREATE TABLE course_registrations (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,      -- Changed from INTEGER to VARCHAR
+    course_id INTEGER NOT NULL,
+    semester INTEGER NOT NULL,                -- Active value (1 through 8)
+    academic_year VARCHAR(50) NOT NULL,       -- e.g., '2025-2026'
+    
+    CONSTRAINT fk_registration_student 
+        FOREIGN KEY (student_id) 
+        REFERENCES student_info(student_id) 
+        ON DELETE CASCADE,
+    CONSTRAINT fk_registration_course 
+        FOREIGN KEY (course_id) 
+        REFERENCES courses(id) 
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- 6. PERIODIC MILESTONE MARKS LEDGER
+-- =========================================================
+drop TYPE evaluation_type_enum;
+
+CREATE TYPE evaluation_type_enum AS ENUM ('IA-1', 'IA-2', 'IA-AVG', 'SEE');
+
+drop table marks_ledger;
+
+CREATE TABLE marks_ledger (
+    id SERIAL PRIMARY KEY,
+    registration_id INTEGER NOT NULL,
+    evaluation_type evaluation_type_enum NOT NULL, -- 'IA-1', 'IA-2', 'IA-AVG', 'SEE'
+    marks_obtained FLOAT DEFAULT NULL,
+    max_marks FLOAT DEFAULT 50.0,
+    attendance_percentage FLOAT DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_ledger_registration 
+        FOREIGN KEY (registration_id) 
+        REFERENCES course_registrations(id) 
+        ON DELETE CASCADE
+		);
+
+-- =========================================================
+-- 1. PRIMARY IDENTITY SUITE
+-- =========================================================
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL, -- 'superadmin', 'admin', 'mentor', 'student'
+    is_active BOOLEAN DEFAULT TRUE,
+    display_name VARCHAR(255),
+    department VARCHAR(100), -- Multi-tenant boundary anchor (e.g., 'CS', 'EC', 'IS')
+    usn_or_id VARCHAR(50) UNIQUE, -- Alphanumeric connector key
+    mentor_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Index identity boundaries to accelerate departmental group filtering
+CREATE INDEX IF NOT EXISTS idx_users_department ON users(department);
+CREATE INDEX IF NOT EXISTS idx_users_usn_or_id ON users(usn_or_id);
+
+-- =========================================================
+-- 2. STANDALONE PROFILE INFORMATION
+-- =========================================================
+CREATE TABLE IF NOT EXISTS student_info (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) UNIQUE NOT NULL CONSTRAINT fk_profile_user REFERENCES users(usn_or_id) ON DELETE CASCADE,
+    father_name VARCHAR(255),
+    mother_name VARCHAR(255),
+    guardian_name VARCHAR(255),
+    phone_number VARCHAR(50),
+    fathers_phone VARCHAR(50),
+    mothers_phone VARCHAR(50),
+    address TEXT,
+    tenth_percentage FLOAT DEFAULT 0.0,
+    twelfth_percentage FLOAT DEFAULT 0.0,
+    diploma_percentage FLOAT DEFAULT 0.0
+);
+-- =========================================================
+-- 3. HISTORICAL PERFORMANCE LEDGER
+-- =========================================================
+CREATE TABLE IF NOT EXISTS academic_records (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL CONSTRAINT fk_academic_user REFERENCES users(id) ON DELETE CASCADE,
+    semester INTEGER NOT NULL, -- Active term scale (1 through 8)
+    semester_gpa FLOAT DEFAULT 0.0,
+    cumulative_cgpa FLOAT DEFAULT 0.0,
+    overall_attendance FLOAT DEFAULT 100.0,
+    backlogs_count INTEGER DEFAULT 0
+);
+
+-- Index performance columns to speed up real-time risk calculations
+CREATE INDEX IF NOT EXISTS idx_academic_risk_lookup ON academic_records(cumulative_cgpa, overall_attendance, backlogs_count);
+
+
+CREATE TABLE mentor_student_mappings (
+    id SERIAL PRIMARY KEY,
+    -- Points to the Mentor's auto-incrementing Integer ID column
+    mentor_id INTEGER NOT NULL, 
+    -- Points to the Student's unique Alphanumeric string key (USN/ID)
+    student_usn_or_id VARCHAR(50) NOT NULL, 
+    
+    academic_year VARCHAR(50) NOT NULL, -- e.g., '2026-2027'
+    semester_type VARCHAR(20) NOT NULL, -- 'Odd', 'Even'
+    is_active BOOLEAN DEFAULT TRUE,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraint maps directly to the parent primary key (Integer)
+    CONSTRAINT fk_mapping_mentor FOREIGN KEY (mentor_id) 
+        REFERENCES users(id) ON DELETE RESTRICT,
+        
+    -- Constraint maps directly to the custom unique alphanumeric field
+    CONSTRAINT fk_mapping_student FOREIGN KEY (student_usn_or_id) 
+        REFERENCES users(usn_or_id) ON DELETE CASCADE,
+        
+    -- Enforces that a single student cannot have two different mentors in the same timeline window
+    CONSTRAINT unique_term_mapping UNIQUE (student_usn_or_id, academic_year, semester_type)
+);
+
+
+CREATE TABLE audit_logs (
+    id SERIAL PRIMARY KEY,
+    -- Tracks the explicit email of the system user who authorized the event
+    operator_email VARCHAR(255) NOT NULL,
+    event_type VARCHAR(100) NOT NULL, -- 'SEMESTER_ADVANCEMENT', 'CSV_BATCH_IMPORT', etc.
+    severity VARCHAR(20) NOT NULL, -- 'INFO', 'WARN', 'CRITICAL'
+    affected_count INT DEFAULT 0, -- Total number of entities modified in this sweep
+    details TEXT NOT NULL, -- Description log string
+    ip_address VARCHAR(45) NOT NULL,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Maintain relationship integrity back to your users list configuration
+    CONSTRAINT fk_audit_operator FOREIGN KEY (operator_email) 
+        REFERENCES users(email) ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_active_term_mappings 
+ON mentor_student_mappings (academic_year, semester_type) 
+WHERE is_active = TRUE;
+
+
+
+
+updated one
+
+-- =========================================================================
+-- SYSTEM CLEANSE MIGRATION LOOP
+-- =========================================================================
+DROP TABLE IF EXISTS marks_ledger CASCADE;
+DROP TABLE IF EXISTS course_registrations CASCADE;
+DROP TABLE IF EXISTS courses CASCADE;
+DROP TABLE IF EXISTS academic_records CASCADE;
+DROP TABLE IF EXISTS student_academic_state CASCADE;
+DROP TABLE IF EXISTS student_info CASCADE;
+DROP TABLE IF EXISTS mentor_student_mappings CASCADE;
+DROP TABLE IF EXISTS audit_logs CASCADE;
+DROP TABLE IF EXISTS academic_term_controls CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+-- Drop dependent custom types if they exist to prevent duplication errors
+DROP TYPE IF EXISTS evaluation_type_enum CASCADE;
+
+-- Recreate custom marks categorization enumerator
+CREATE TYPE evaluation_type_enum AS ENUM ('IA-1', 'IA-2', 'SEE');
+
+
+-- =========================================================================
+-- 1. PRIMARY SYSTEM IDENTITY TABLE
+-- =========================================================================
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,                    -- 'superadmin', 'admin', 'mentor', 'student'
+    is_active BOOLEAN DEFAULT TRUE,
+    display_name VARCHAR(255),
+    department VARCHAR(100),                      -- Multi-tenant boundary anchor (e.g., 'CS', 'EC', 'IS')
+    usn_or_id VARCHAR(50) UNIQUE,                 -- Alphanumeric connector key (Null for custom admins)
+    mentor_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+);
+
+
+-- =========================================================================
+-- 2. PROFILE & PERSONAL STATIC DATA RECORD
+-- =========================================================================
+CREATE TABLE student_info (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) UNIQUE NOT NULL,       -- Primary Alphanumeric Connector Key (USN)
+    father_name VARCHAR(255),
+    mother_name VARCHAR(255),
+    guardian_name VARCHAR(255),
+    phone_number VARCHAR(50),
+    fathers_phone VARCHAR(50),
+    mothers_phone VARCHAR(50),
+    address TEXT,
+    tenth_percentage FLOAT DEFAULT 0.0,
+    twelfth_percentage FLOAT DEFAULT 0.0,
+    diploma_percentage FLOAT DEFAULT 0.0,
+    
+    CONSTRAINT fk_profile_user FOREIGN KEY (student_id) 
+        REFERENCES users(usn_or_id) ON DELETE CASCADE
+);
+
+
+-- =========================================================================
+-- 3. VOLATILE ACADEMIC SHIFTING & PROGRESSION STATE
+-- =========================================================================
+CREATE TABLE student_academic_state (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) UNIQUE NOT NULL,       -- References custom string key layout
+    current_year INT DEFAULT 1,                   -- 1, 2, 3, 4
+    current_semester INT DEFAULT 1,               -- 1 through 8
+    last_advanced_academic_year VARCHAR(50) DEFAULT NULL, -- Preventative state tracking token
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_academic_state_user FOREIGN KEY (student_id) 
+        REFERENCES users(usn_or_id) ON DELETE CASCADE,
+        
+    -- Anti-skip engine verification check rule
+    CONSTRAINT check_single_year_increment CHECK (current_year >= 1 AND current_year <= 5)
+);
+
+
+-- =========================================================================
+-- 4. TERM-BASED HISTORIC PERFORMANCE LEDGER
+-- =========================================================================
+CREATE TABLE academic_records (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,               -- Alphanumeric Identifier
+    semester INTEGER NOT NULL,                     -- Term marker scale (1 through 8)
+    academic_year VARCHAR(50) NOT NULL,            -- e.g., '2025-2026'
+    semester_gpa FLOAT DEFAULT 0.0,
+    cumulative_cgpa FLOAT DEFAULT 0.0,
+    overall_attendance FLOAT DEFAULT 100.0,
+    backlogs_count INTEGER DEFAULT 0,
+    is_historical_snapshot BOOLEAN DEFAULT FALSE,  -- Flips to True when advanced past this timeline node
+    
+    CONSTRAINT fk_academic_student 
+        FOREIGN KEY (student_id) 
+        REFERENCES student_info(student_id) 
+        ON DELETE CASCADE,
+        
+    CONSTRAINT unique_student_semester_snapshot 
+        UNIQUE (student_id, semester, academic_year)
+);
+
+
+-- =========================================================================
+-- 5. MASTER COURSE CATALOG INVENTORY
+-- =========================================================================
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    course_code VARCHAR(100) NOT NULL UNIQUE,     -- e.g., '18CS51'
+    course_name VARCHAR(255) NOT NULL,            -- e.g., 'Computer Networks'
+    assigned_semester INTEGER NOT NULL,           -- 1 through 8
+    department VARCHAR(255) NOT NULL              -- e.g., 'Computer Science'
+);
+
+
+-- =========================================================================
+-- 6. COURSE ENROLLMENT RELATIONSHIP BRIDGE
+-- =========================================================================
+CREATE TABLE course_registrations (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,
+    course_id VARCHAR(50) NOT NULL,
+    semester INTEGER NOT NULL,                     -- Active value context (1 through 8)
+    academic_year VARCHAR(50) NOT NULL,            -- e.g., '2025-2026'
+    
+    CONSTRAINT fk_registration_student 
+        FOREIGN KEY (student_id) 
+        REFERENCES student_info(student_id) 
+        ON DELETE CASCADE,
+        
+    CONSTRAINT fk_registration_course 
+        FOREIGN KEY (course_id) 
+        REFERENCES courses(course_code) 
+        ON DELETE CASCADE,
+        
+    -- Strict prevention of double entry mutation anomalies
+    CONSTRAINT unique_student_course_term 
+        UNIQUE (student_id, course_id, academic_year, semester)
+);
+
+-- =========================================================================
+-- 7. PERIODIC MILESTONE MARKS LEDGER
+-- =========================================================================
+drop TYPE evaluation_type_enum;
+
+CREATE TYPE evaluation_type_enum AS ENUM ('IA-1', 'IA-2', 'IA-AVG', 'SEE');
+
+drop table marks_ledger;
+
+CREATE TABLE marks_ledger (
+    id SERIAL PRIMARY KEY,
+    registration_id INTEGER NOT NULL,
+    evaluation_type evaluation_type_enum NOT NULL, -- 'IA-1', 'IA-2', 'IA-AVG', 'SEE'
+    marks_obtained FLOAT DEFAULT NULL,
+    max_marks FLOAT DEFAULT 50.0,
+    attendance_percentage FLOAT DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_ledger_registration 
+        FOREIGN KEY (registration_id) 
+        REFERENCES course_registrations(id) 
+        ON DELETE CASCADE
+);
+
+
+
+-- =========================================================================
+-- 8. TIMELINE HISTORICAL MENTORSHIP MAPPING (OPTION A)
+-- =========================================================================
+CREATE TABLE mentor_student_mappings (
+    id SERIAL PRIMARY KEY,
+    mentor_id VARCHAR(255) NOT NULL,                   -- Points to user record id (Integer)
+    student_usn_or_id VARCHAR(50) NOT NULL,       -- Points to student user account identity (VARCHAR)
+    academic_year VARCHAR(50) NOT NULL,           -- e.g., '2026-2027'
+    semester_type VARCHAR(20) NOT NULL,           -- 'Odd', 'Even'
+    is_active BOOLEAN DEFAULT TRUE,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_mapping_mentor FOREIGN KEY (mentor_id) 
+        REFERENCES mentor_details(employee_id) ON DELETE RESTRICT,
+        
+    CONSTRAINT fk_mapping_student FOREIGN KEY (student_usn_or_id) 
+        REFERENCES users(usn_or_id) ON DELETE CASCADE,
+        
+    CONSTRAINT unique_term_mapping UNIQUE (student_usn_or_id, academic_year, semester_type)
+);
+
+
+-- =========================================================================
+-- 9. ADVANCEMENT CONTROL INTEGRATION REGISTRY
+-- =========================================================================
+CREATE TABLE academic_term_controls (
+    id SERIAL PRIMARY KEY,
+    department VARCHAR(255) NOT NULL,
+    semester INTEGER NOT NULL,
+    academic_year VARCHAR(50) NOT NULL,
+    is_grading_finalized BOOLEAN DEFAULT FALSE,   -- Must evaluate to True before transaction allows processing
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT unique_dept_term UNIQUE (department, semester, academic_year)
+);
+
+
+-- =========================================================================
+-- 10. TRANSACTION AUDIT LOG TRIAL
+-- =========================================================================
+CREATE TABLE audit_logs (
+    id SERIAL PRIMARY KEY,
+    operator_email VARCHAR(255) NOT NULL,
+    event_type VARCHAR(100) NOT NULL,             -- 'SEMESTER_ADVANCEMENT', 'CSV_BATCH_IMPORT'
+    severity VARCHAR(20) NOT NULL,                -- 'INFO', 'WARN', 'CRITICAL'
+    affected_count INT DEFAULT 0,                 -- Profiles processed inside the execution wrapper
+    details TEXT NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_audit_operator FOREIGN KEY (operator_email) 
+        REFERENCES users(email) ON DELETE RESTRICT
+);
+
+
+-- =========================================================================
+-- PERFORMANCE OPTIMIZATION INDEX ENGINE TUNING
+-- =========================================================================
+-- Speeds up active calculation analysis models 
+CREATE INDEX idx_academic_risk_lookup 
+ON academic_records(cumulative_cgpa, overall_attendance, backlogs_count)
+WHERE is_historical_snapshot = FALSE;
+
+-- Speeds up high volume lookups during batch advancement transitions
+CREATE INDEX idx_student_advancement_lookup 
+ON users (department, usn_or_id, role) 
+WHERE role = 'student' AND is_active = TRUE;
+
+-- Optimizes mentor dashboard retrieval cycles
+CREATE INDEX idx_active_term_mappings 
+ON mentor_student_mappings (academic_year, semester_type) 
+WHERE is_active = TRUE;
+
+
+CREATE TABLE mentor_details (
+    id SERIAL PRIMARY KEY,
+    
+    -- Foreign Key referring to usn_or_id from the users table
+    employee_id VARCHAR(255) NOT NULL UNIQUE,
+    
+    -- Profile & Identity Attributes
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone_number VARCHAR(20) DEFAULT NULL,
+    department_name VARCHAR(100) NOT NULL,
+    designation VARCHAR(100) NOT NULL,
+    gender VARCHAR(20) DEFAULT NULL,
+    highest_qualification VARCHAR(100) DEFAULT NULL,
+    
+    -- Financial & Government Identity Records
+    pan_card_number VARCHAR(50) DEFAULT NULL,
+    aadhaar_card_number VARCHAR(50) DEFAULT NULL,
+    
+    -- Operational Tenure Timestamps
+    date_of_joining TIMESTAMP NOT NULL,
+    relieving_date TIMESTAMP DEFAULT NULL,
+    
+    -- Experience Metric Quantifiers (Allows accurate fractional decimal years, e.g., 2.5)
+    experience_in_college INTEGER DEFAULT 0 NOT NULL,
+    teaching_experience_years NUMERIC(4, 2) DEFAULT 0.00 NOT NULL,
+    research_experience_years NUMERIC(4, 2) DEFAULT 0.00 NOT NULL,
+    industry_experience_years NUMERIC(4, 2) DEFAULT 0.00 NOT NULL,
+    other_experience_years NUMERIC(4, 2) DEFAULT 0.00 NOT NULL,
+    total_work_experience_years NUMERIC(4, 2) DEFAULT 0.00 NOT NULL,
+    
+    -- Database Constraints enforcing structural references and data cleanup metrics
+    CONSTRAINT fk_mentor_user_account 
+        FOREIGN KEY (employee_id) 
+        REFERENCES users (usn_or_id) 
+        ON DELETE CASCADE
+);
+
+-- Indexing optimizations for rapid search capabilities on reference anchors
+CREATE INDEX idx_mentor_employee_id ON mentor_details(employee_id);
+CREATE INDEX idx_mentor_email ON mentor_details(email);
+
+
+CREATE TABLE IF NOT EXISTS student_academic_state (
+    id SERIAL PRIMARY KEY,
+    -- Reference key tracking back to the primary unique system identifier
+    student_id VARCHAR(50) UNIQUE NOT NULL,
+    
+    -- Academic Position Shifting States
+    current_year INT DEFAULT 1,       -- 1, 2, 3, 4
+    current_semester INT DEFAULT 1,   -- 1 through 8
+    
+    -- Safeguard Tracking State & Multi-Run Protection
+    last_advanced_academic_year VARCHAR(50) DEFAULT NULL, -- e.g., '2026-2027'
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Enforce strict database cascade paths
+    CONSTRAINT fk_academic_user FOREIGN KEY (student_id) 
+        REFERENCES users(usn_or_id) ON DELETE CASCADE
+);
+
+-- 1. Safely drop the old table configuration if it exists to clean out old constraints
+DROP TABLE IF EXISTS clinical_knowledge_base CASCADE;
+
+-- 2. Create the entire optimized clinical_knowledge_base table structure
+CREATE TABLE clinical_knowledge_base (
+    id SERIAL PRIMARY KEY,
+    domain VARCHAR(50) NOT NULL,                 -- Matches 'psychology', 'mental_health', or 'relationships'
+    keyword_combinations TEXT NOT NULL,          -- Houses your rich natural language query scenarios 
+    predefined_title VARCHAR(255) NOT NULL,      -- Header matching rule configurations
+    predefined_answer TEXT NOT NULL,             -- Bullet-parsed content blocks pre-split with "->"
+    severity_tier INT DEFAULT 1,                 -- Triage classification parameter
+    action_url TEXT,                             -- Support destination redirect link
+
+    -- 3. CRITICAL: The dynamically computed full-text query column vector
+    -- This merges your conversational keywords and title strings, ignoring useless words, 
+    -- and turns them into a structured text document format that Postgres can rank mathematically.
+    search_vector tsvector GENERATED ALWAYS AS (
+        to_tsvector('english', coalesce(keyword_combinations, '') || ' ' || coalesce(predefined_title, ''))
+    ) STORED
+);
+
+-- 4. Build a high-performance GIN (Generalized Inverted Index) over the search vector column
+-- This keeps lookups running instantly even with 3,000+ entries, avoiding slow sequential table scans.
+CREATE INDEX IF NOT EXISTS idx_search_vector 
+ON clinical_knowledge_base USING gin(search_vector);
+
+CREATE TABLE mentoring_reports (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,
+    mentor_id VARCHAR(50) NOT NULL,
+    meeting_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    academic_year VARCHAR(20) NOT NULL,    -- Stores formats like "2026 - 2027"
+    current_semester INT NOT NULL,          -- Stores numerical semester (e.g., 1 to 8)
+    discussion_points TEXT NOT NULL,
+    action_items TEXT,
+    
+    -- Foreign key constraint ensuring records can only map onto valid system accounts
+    CONSTRAINT fk_mentoring_reports_student 
+        FOREIGN KEY (student_id) 
+        REFERENCES users (usn_or_id) 
+        ON DELETE CASCADE
+);
+-- Indexing optimized for retrieving history timelines per mentee
+CREATE INDEX idx_mentoring_reports_student_id ON mentoring_reports (student_id);
+
+ALTER TABLE mentoring_reports 
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN IF NOT EXISTS semester INTEGER DEFAULT 1,
+ADD COLUMN IF NOT EXISTS academic_year VARCHAR(50);

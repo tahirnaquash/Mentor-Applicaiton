@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Academic Report Ledger Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-6 font-sans">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black text-slate-900 tracking-tight">Academic Report Engine</h1>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Progressive selection filters and student record validation</p>
+            </div>
+            <a href="/dashboard/admin" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                ← Back to Dashboard
+            </a>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+            <form id="filter_form" method="GET" action="/admin/reports/academic-search" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">1. Target Department</label>
+                    {% if admin_role == 'superadmin' %}
+                    <select name="department" onchange="document.getElementById('filter_form').submit()" class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none cursor-pointer">
+                        <option value="">Select Department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept }}" {% if filters.department == dept %}selected{% endif %}>{{ dept }}</option>
+                        {% endfor %}
+                    </select>
+                    {% else %}
+                    <input type="text" readonly value="{{ admin_dept }}" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl select-none outline-none">
+                    <input type="hidden" name="department" value="{{ admin_dept }}">
+                    {% endif %}
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">2. Academic Year</label>
+                    <select name="academic_year" id="select_year" onchange="document.getElementById('filter_form').submit()" 
+                            {% if admin_role == 'superadmin' and not filters.department %}disabled class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-100 text-slate-300 rounded-xl pointer-events-none"
+                            {% else %} class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none cursor-pointer" {% endif %}>
+                        <option value="">Select Academic Year</option>
+                        {% for year in academic_years %}
+                        <option value="{{ year }}" {% if filters.academic_year == year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">3. Target Semester</label>
+                    <select name="semester" id="select_semester" onchange="document.getElementById('filter_form').submit()"
+                            {% if not filters.academic_year %}disabled class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-100 text-slate-300 rounded-xl pointer-events-none"
+                            {% else %} class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none cursor-pointer" {% endif %}>
+                        <option value="">Select Semester</option>
+                        {% for sem in [1,2,3,4,5,6,7,8] %}
+                        <option value="{{ sem }}" {% if filters.semester|int == sem %}selected{% endif %}>Semester {{ sem }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        {% if filters.academic_year and filters.semester %}
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs {% if selected_report %}lg:col-span-7{% else %}lg:col-span-12{% endif %}">
+                <div class="p-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="text-xs font-black text-slate-800 uppercase tracking-wider">Student Registry (Cadre Count: {{ students|length }})</h2>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] uppercase font-black tracking-wider">
+                                <th class="p-3">USN / Identifier</th>
+                                <th class="p-3">Student Name</th>
+                                <th class="p-3">Department</th>
+                                <th class="p-3 text-center">Semester</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                            {% if students %}
+                                {% for student in students %}
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="p-3 font-mono text-indigo-600 font-bold">{{ student.usn_or_id }}</td>
+                                    <td class="p-3 font-semibold text-slate-900">{{ student.display_name }}</td>
+                                    <td class="p-3 text-slate-500">{{ student.department }}</td>
+                                    <td class="p-3 text-center"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600 font-bold">S{{ filters.semester }}</span></td>
+                                    <td class="p-3 text-right">
+                                        <form method="GET" action="/admin/reports/academic-search">
+                                            <input type="hidden" name="department" value="{{ filters.department or '' }}">
+                                            <input type="hidden" name="academic_year" value="{{ filters.academic_year }}">
+                                            <input type="hidden" name="semester" value="{{ filters.semester }}">
+                                            <input type="hidden" name="page" value="{{ current_page }}">
+                                            <input type="hidden" name="view_student_id" value="{{ student.id }}">
+                                            <button type="submit" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-lg text-[11px] font-black tracking-wide transition-all">View Record</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-slate-400 font-medium">No student enrollment matches found for this specific term configuration block.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if total_pages > 1 %}
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-medium">Page <b class="text-slate-800">{{ current_page }}</b> of <b class="text-slate-800">{{ total_pages }}</b></span>
+                    <div class="flex gap-1.5">
+                        {% if current_page > 1 %}
+                        <a href="/admin/reports/academic-search?department={{ filters.department or '' }}&academic_year={{ filters.academic_year }}&semester={{ filters.semester }}&page={{ current_page - 1 }}" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-600">Previous</a>
+                        {% endif %}
+                        
+                        {% if current_page < total_pages %}
+                        <a href="/admin/reports/academic-search?department={{ filters.department or '' }}&academic_year={{ filters.academic_year }}&semester={{ filters.semester }}&page={{ current_page + 1 }}" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-600">Next →</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if selected_report %}
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm lg:col-span-5 space-y-5 p-5 animate-fade-in">
+                <div class="border-b border-slate-100 pb-3">
+                    <span class="text-[9px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-black tracking-widest uppercase">Inspect Workspace</span>
+                    <h3 class="text-base font-black text-slate-900 mt-1">{{ selected_report.profile.display_name }}</h3>
+                    <p class="font-mono text-xs text-slate-400 mt-0.5">USN: {{ selected_report.profile.usn_or_id }}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Unresolved Backlogs</span>
+                        <span class="text-lg font-black {% if selected_report and selected_report.backlogs > 0 %}text-amber-600{% else %}text-emerald-600{% endif %}">{% if selected_report %}{{ selected_report.backlogs }}{% else %}0{% endif %} Failures</span>
+                        <span class="text-lg font-black {% if selected_report.backlogs > 0 %}text-amber-600{% else %}text-emerald-600{% endif %}">{{ selected_report.backlogs }} Failures</span>
+                    </div>
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Course Load</span>
+                        <span class="text-lg font-black text-slate-800">{{ selected_report.records|length }} Subjects</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wide">Registered Courses Ledger (S{{ filters.semester }} - {{ filters.academic_year }})</h4>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-xs">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                                    <th class="px-4 py-3">Course Code & Title</th>
+                                    <th class="px-4 py-3 text-center">Attendance</th>
+                                    <th class="px-4 py-3 text-center">IA-1</th>
+                                    <th class="px-4 py-3 text-center">IA-2</th>
+                                    <th class="px-4 py-3 text-center">IA Avg</th>
+                                    <th class="px-4 py-3 text-center">SEE</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
+                                {% if selected_report and selected_report.courses %}
+                                    {% for course in selected_report.courses %}
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-4 py-3.5">
+                                            <div class="font-black text-slate-900">{{ course.course_code }}</div>
+                                            <div class="text-[11px] text-slate-400 font-medium">{{ course.course_name }}</div>
+                                        </td>
+                                        <td class="px-4 py-3.5 text-center font-mono text-slate-600">
+                                            {{ course.attendance }}
+                                        </td>
+                                        <td class="px-4 py-3.5 text-center font-mono">{{ course.ia1 }}</td>
+                                        <td class="px-4 py-3.5 text-center font-mono">{{ course.ia2 }}</td>
+                                        <td class="px-4 py-3.5 text-center font-mono text-indigo-600 font-black">{{ course.ia_avg }}</td>
+                                        <td class="px-4 py-3.5 text-center font-mono text-slate-800 font-black">{{ course.see }}</td>
+                                        <td class="px-4 py-3.5 text-center">
+                                            {% if course.result == 'Pass' %}
+                                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded font-black text-[10px] uppercase">PASS</span>
+                                            {% elif course.result == 'Fail' %}
+                                                <span class="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded font-black text-[10px] uppercase">FAIL</span>
+                                            {% else %}
+                                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded font-black text-[10px] uppercase">{{ course.result }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-8 text-center text-slate-400 font-medium">
+                                            No enrollment milestones or marks recorded for this term selection.
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+        {% else %}
+        <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center">
+            <span class="text-3xl">🗂️</span>
+            <h3 class="text-sm font-black text-slate-700 mt-3">Selection Sequence Pipeline Incomplete</h3>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto mt-1">Please progressively complete selection fields from left to right above to compile the corresponding targeted student registry cards dashboard view.</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

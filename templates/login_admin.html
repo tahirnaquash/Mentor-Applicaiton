@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}System Management Console - Secure Verification{% endblock %}
+
+{% block content %}
+<div class="min-h-[65vh] flex items-center justify-center relative py-12 animate-fade-in">
+    <div class="w-full max-w-md bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl p-8 shadow-xl shadow-slate-100/50 space-y-6 relative z-10 hover:border-slate-300 transition-all duration-300">
+        
+        <div class="text-center space-y-1.5">
+            <span class="inline-flex items-center px-2.5 py-0.5 bg-accent-50 border border-accent-100 text-accent-600 font-black text-[9px] tracking-widest uppercase rounded-md">
+                Identity Auth Core
+            </span>
+            <h2 class="text-2xl font-display font-black text-slate-900 tracking-tight mt-2 uppercase">Admin Core Gateway</h2>
+            <p class="text-xs font-semibold text-slate-400">Initialize identity verification protocols</p>
+        </div>
+        
+        <form action="/auth/login/admin" method="POST" class="space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide block">Secure Identity Email</label>
+                <input type="email" name="username" required placeholder="admin@mentormatch.org" class="w-full text-xs font-bold px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 focus:bg-white transition-all duration-200">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide block">Root Security Passphrase</label>
+                <input type="password" name="password" required placeholder="••••••••••••" class="w-full text-xs font-bold px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 focus:bg-white transition-all duration-200">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-accent-600 text-white font-black text-xs rounded-xl shadow-md shadow-accent-500/10 hover:bg-accent-700 hover:shadow-lg transition-all duration-300 active:scale-[0.99] uppercase tracking-wider font-display cursor-pointer">
+                Authenticate Root System Token ➔
+            </button>
+        </form>
+        
+        <div class="text-center pt-2">
+            <a href="/" class="text-[10px] font-black text-slate-400 hover:text-accent-600 transition-colors uppercase tracking-wider font-mono">
+                ← Abort Core Authentication
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1492 @@
+{% extends "base.html" %}
+{% block title %}Admin Master Orchestrator Control Console{% endblock %}
+
+{% block nav_action %}
+<div class="flex items-center gap-4">
+    {% if data.get('role') == 'superadmin' %}
+        <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-md font-black text-[10px] tracking-wider uppercase font-mono">
+            🌐 GLOBAL SUPERUSER
+        </span>
+    {% else %}
+        <span class="px-2.5 py-1 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-md font-black text-[10px] tracking-wider uppercase font-mono">
+            🏢 DEPT: {{ data.get('department', 'OPERATIONS') }}
+        </span>
+    {% endif %}
+
+    <a href="/auth/logout" class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs rounded-xl transition-colors shadow-xs group">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-rose-600 transition-transform group-hover:translate-x-0.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
+        <span>Logout</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 min-h-[80vh] items-stretch -mt-4">
+    
+    <aside class="w-full lg:w-72 bg-slate-900 text-slate-300 rounded-3xl p-6 flex flex-col justify-between border border-slate-800 shadow-xl shrink-0">
+        <div class="space-y-6">
+            
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Workspace Maps</span>
+                
+                <a href="/dashboard/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if not request.query_params.get('action') %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>📊</span> Overview Ledger
+                </a>
+                
+                <a href="?action=create_user" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'create_user' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>👤</span> Provision Accounts
+                </a>
+
+                <a href="?action=assign_mentor" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'assign_mentor' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>🛡️</span> Role Enforcement
+                </a>
+
+                <a href="?action=batch-import" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'batch-import' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>📁</span> Batch CSV Imports
+                </a>
+                <div class="flex flex-col h-full pt-2 mt-2 border-t border-slate-800">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-1">Security Matrix</span>
+                <a href="?action=change_password" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'change_password' %}
+                        text-white bg-rose-600 shadow-sm shadow-rose-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>🔑</span> Change Password Matrix
+                </a>
+                </div>
+            </div>
+
+            <div class="space-y-1 pt-2">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Analytics Desk</span>
+                
+                <a href="/admin/export/risk-csv" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900/30 transition-all">
+                    <span class="flex items-center gap-3"><span>📈</span> Live Student Catalog</span>
+                    <span class="text-[9px] bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded font-mono">CSV</span>
+                </a>
+                <div class="space-y-1 pt-2">   
+                    <button onclick="openAnalyticsDeskWithTab(1)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-indigo-400 hover:bg-indigo-950/30 border border-transparent hover:border-indigo-900/30 transition-all text-left">
+                        <span class="flex items-center gap-3"><span>📈</span> Student's Academics Reports</span>
+                        <span class="text-[9px] bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded font-mono">PANEL</span>
+                    </button>
+
+                    <button onclick="openAnalyticsDeskWithTab(2)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-400 hover:bg-emerald-950/30 border border-transparent hover:border-emerald-900/30 transition-all text-left">
+                        <span class="flex items-center gap-3"><span>📋</span> Mentor's Reports</span>
+                        <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-mono">PANEL</span>
+                    </button>
+
+                    <button onclick="openAnalyticsDeskWithTab(3)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900/30 transition-all text-left">
+                        <span class="flex items-center gap-3"><span>🚨</span> Counsellor's Reports</span>
+                        <span class="text-[9px] bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded font-mono">PANEL</span>
+                    </button>
+                </div>
+                <div id="analyticsDeskPane" class="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl border-l border-slate-200 z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+                    <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
+                        <div>
+                            <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">Analytics Desk</h3>
+                            {% if data.get('role') == 'superadmin' %}
+                                <p class="text-[11px] text-emerald-400 font-bold mt-0.5">Privilege Scope: Global System Records</p>
+                            {% else %}
+                                <p class="text-[11px] text-amber-400 font-bold mt-0.5">Privilege Scope: {{ data.get('department', 'Your') }} Dept Only</p>
+                            {% endif %}
+                        </div>
+                        <button onclick="closeAnalyticsDesk()" class="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/50">
+                        
+                        <div class="space-y-1 pt-2">
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Analytics Desk</span>
+                            
+                            <a href="/admin/reports/academic-search" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-indigo-400 hover:bg-indigo-950/30 border border-transparent hover:border-indigo-900/30 transition-all text-left">
+                                <span class="flex items-center gap-3"><span>📈</span> Student's Academics Reports</span>
+                                <span class="text-[9px] bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded font-mono">SEARCH</span>
+                            </a>
+
+                            <button onclick="openAnalyticsDeskWithTab(2)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-400 hover:bg-emerald-950/30 border border-transparent hover:border-emerald-900/30 transition-all text-left">
+                                <span class="flex items-center gap-3"><span>📋</span> Mentor's Reports</span>
+                                <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-mono">PANEL</span>
+                            </button>
+                        </div>
+
+                        <div id="subpane-2" class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs hover:border-slate-300 transition-all">
+                            <div class="flex items-center gap-2.5 mb-3">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-xs font-mono">02</div>
+                                <div>
+                                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wide">Mentor's Reports</h4>
+                                    <p class="text-[10px] text-slate-500 font-medium">Structural assignment allocation mapping records</p>
+                                </div>
+                            </div>
+                            <form action="/admin/reports/mentors" method="GET">
+                                <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                                    Compile Mentor Distribution ➔
+                                </button>
+                            </form>
+                        </div>
+
+                        <div id="subpane-3" class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs hover:border-slate-300 transition-all">
+                            <div class="flex items-center gap-2.5 mb-3">
+                                <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 font-bold text-xs font-mono">03</div>
+                                <div>
+                                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wide">Counsellor's Reports</h4>
+                                    <p class="text-[10px] text-slate-500 font-medium">Risk profiling and intervention summary logs</p>
+                                </div>
+                            </div>
+                            <form action="/admin/reports/counselors" method="GET">
+                                <button type="submit" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] rounded-lg shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                                    Generate Intervention Logs ➔
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="analyticsDeskBackdrop" onclick="closeAnalyticsDesk()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-40 hidden opacity-0 transition-opacity duration-300 ease-in-out"></div>
+
+                <script>
+                    function openAnalyticsDeskWithTab(targetSubpaneId) {
+                        const pane = document.getElementById('analyticsDeskPane');
+                        const backdrop = document.getElementById('analyticsDeskBackdrop');
+                        
+                        // Remove highlighting from all subpanes first
+                        [1, 2, 3].forEach(id => {
+                            const card = document.getElementById(`subpane-${id}`);
+                            if (card) card.classList.remove('ring-2', 'ring-offset-2', 'scale-[1.01]', 'border-slate-400');
+                        });
+
+                        // Trigger Entry Transitions
+                        pane.classList.remove('translate-x-full');
+                        backdrop.classList.remove('hidden');
+                        setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+
+                        // Flash target section attention highlight smoothly
+                        setTimeout(() => {
+                            const targetCard = document.getElementById(`subpane-${targetSubpaneId}`);
+                            if (targetCard) {
+                                targetCard.classList.add('ring-2', 'scale-[1.01]', 'border-slate-400');
+                                if (targetSubpaneId === 1) targetCard.classList.add('ring-indigo-500/50');
+                                if (targetSubpaneId === 2) targetCard.classList.add('ring-emerald-500/50');
+                                if (targetSubpaneId === 3) targetCard.classList.add('ring-rose-500/50');
+                                
+                                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }, 350);
+                    }
+
+                    function closeAnalyticsDesk() {
+                        const pane = document.getElementById('analyticsDeskPane');
+                        const backdrop = document.getElementById('analyticsDeskBackdrop');
+                        
+                        pane.classList.add('translate-x-full');
+                        backdrop.classList.remove('opacity-100');
+                        setTimeout(() => backdrop.classList.add('hidden'), 300);
+                    }
+                </script>
+            </div>
+
+            {% if data.get('role') == 'superadmin' %}
+            <div class="space-y-1 pt-2">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Global Control Keys</span>
+                
+                <a href="?action=view_logs" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'view_logs' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>🧱</span> Firewall Security Logs
+                </a>
+                
+                <a href="?action=term_shift" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'term_shift' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>⏳</span> Semester Term Shift
+                </a>
+            </div>
+            {% endif %}
+            
+        </div>
+        
+        <div class="pt-4 border-t border-slate-800 text-[10px] text-slate-600 font-bold uppercase tracking-wider text-center font-mono select-none">
+            Node Environment: Secure
+        </div>
+    </aside>
+
+    <main class="flex-1 bg-white border border-slate-200 rounded-3xl p-8 shadow-xs overflow-y-auto">
+        
+        {% if msg %}
+        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center gap-3 text-xs font-bold">
+            <span>✅</span> {{ msg }}
+        </div>
+        {% endif %}
+
+        {% if err %}
+        <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl flex items-center gap-3 text-xs font-bold">
+            <span>⚠️</span> {{ err }}
+        </div>
+        {% endif %}
+
+        {% if not request.query_params.get('action') %}
+        <div class="space-y-10">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">
+                    {% if data.get('role') == 'superadmin' %}Global Infrastructure Overview Ledger{% else %}{{ data.get('department') }} Department Control Center{% endif %}
+                </h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Real-time control data metrics across authorized system nodes</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs space-y-2">
+                    <span class="text-[10px] font-black text-indigo-600 uppercase tracking-wider block">Total Managed Cohort Students</span>
+                    <span class="text-4xl font-black text-slate-900 font-mono block">{{ data.get('total_students', 0) }}</span>
+                </div>
+                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs space-y-2">
+                    <span class="text-[10px] font-black text-emerald-600 uppercase tracking-wider block">Verified Academic Mentors</span>
+                    <span class="text-4xl font-black text-slate-900 font-mono block">{{ data.get('total_mentors', 0) }}</span>
+                </div>
+                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs space-y-2">
+                    <span class="text-[10px] font-black text-amber-600 uppercase tracking-wider block">Authorized Counseling Staff</span>
+                    <span class="text-4xl font-black text-slate-900 font-mono block">{{ data.get('total_counselors', 0) }}</span>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-6">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Critical Risk Alert Analysis Framework</h3>
+                    <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Distribution tracking students triggering low attendance or academic warning indicators</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-3">
+                        {% for item in data.get('chart_analytics', []) %}
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-slate-700">
+                                <span>🏢 {{ item.department }}</span>
+                                <span class="font-mono text-rose-600">{{ item.count }} Critical Cases</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                <div class="bg-gradient-to-r from-rose-500 to-amber-500 h-3 rounded-full transition-all w-[{{ item.bar_width|default(0) }}%]"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center p-6 text-xs text-slate-400 font-bold">No students are currently flagged with critical status anomalies inside this workspace scope.</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl p-4 bg-white space-y-3">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">System Diagnostics Flag</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🛡️</span>
+                            <p class="text-xs font-semibold text-slate-600 leading-relaxed">
+                                Columns display metrics flagging risk parameters. System constraints request an immediate evaluation on drops under <strong class="text-slate-900 font-bold">75.0% Attendance</strong> or <strong class="text-slate-900 font-bold">6.5 Cumulative CGPA</strong> values.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Counseling Services Vault Roster Referral Ledger</h3>
+                    <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Active records flagged or submitted for monitoring vectors</p>
+                </div>
+
+                <form method="GET" action="/dashboard/admin" class="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <input type="hidden" name="risk_page" value="1">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Branch</label>
+                        <select name="risk_branch" class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            {% if data.get('role') == 'superadmin' %}
+                            <option value="">All Branches</option>
+                            {% endif %}
+                            {% for branch in data.get('branch_options', []) %}
+                            <option value="{{ branch }}" {% if data.get('risk_filters', {}).get('branch') == branch %}selected{% endif %}>{{ branch }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Semester</label>
+                        <select name="risk_semester" class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            <option value="">All Semesters</option>
+                            {% for semester in data.get('semester_options', []) %}
+                            <option value="{{ semester }}" {% if data.get('risk_filters', {}).get('semester')|string == semester|string %}selected{% endif %}>Semester {{ semester }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Records</label>
+                        <select name="risk_limit" class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            {% for limit in [10, 50, 100] %}
+                            <option value="{{ limit }}" {% if data.get('risk_filters', {}).get('limit') == limit %}selected{% endif %}>{{ limit }} records</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Sort By</label>
+                        <div class="flex gap-2">
+                            <select name="risk_sort" class="min-w-0 flex-1 text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 cursor-pointer">
+                                <option value="status" {% if data.get('risk_filters', {}).get('sort') == 'status' %}selected{% endif %}>Escalation Threat Status</option>
+                                <option value="cgpa" {% if data.get('risk_filters', {}).get('sort') == 'cgpa' %}selected{% endif %}>CGPA</option>
+                                <option value="attendance" {% if data.get('risk_filters', {}).get('sort') == 'attendance' %}selected{% endif %}>Attendance</option>
+                            </select>
+                            <button type="submit" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[11px] font-black transition-colors">Apply</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="border border-slate-200 rounded-2xl bg-slate-50 shadow-2xs max-h-[70vh] overflow-y-auto">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-900 text-white font-bold text-[10px] uppercase tracking-wider font-mono">
+                                    <th class="p-3.5">Student Entity Identity</th>
+                                    <th class="p-3.5">Registry ID Code</th>
+                                    <th class="p-3.5">Department</th>
+                                    <th class="p-3.5">Semester</th>
+                                    <th class="p-3.5">CGPA</th>
+                                    <th class="p-3.5">Attendance</th>
+                                    <th class="p-3.5 text-right">Escalation Threat Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700 font-semibold bg-white">
+                                {% for record in data.get('counseling_roster', []) %}
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="p-3.5 text-slate-900 font-bold">{{ record.name }}</td>
+                                    <td class="p-3.5 font-mono text-[11px] text-slate-500">{{ record.usn_or_id }}</td>
+                                    <td class="p-3.5 text-slate-600 font-medium">{{ record.department or 'N/A' }}</td>
+                                    <td class="p-3.5 font-mono text-slate-900">{{ record.semester }}</td>
+                                    <td class="p-3.5 font-mono text-slate-900">{{ record.cgpa }}</td>
+                                    <td class="p-3.5 font-mono text-slate-900">{{ record.attendance }}</td>
+                                    <td class="p-3.5 text-right">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase font-mono border
+                                            {% if record.color == 'rose' %} bg-rose-50 border-rose-200 text-rose-700
+                                            {% elif record.color == 'amber' %} bg-amber-50 border-amber-200 text-amber-700
+                                            {% else %} bg-teal-50 border-teal-200 text-teal-700 {% endif %}">
+                                            {{ record.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-slate-400 font-medium bg-slate-50">No active records require counselor visibility inside this domain node context.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 bg-white border-t border-slate-200">
+                        <div class="text-[11px] font-bold text-slate-500">
+                            Showing
+                            <span class="font-mono text-slate-900">{{ data.get('risk_pagination', {}).get('start', 0) }}</span>
+                            -
+                            <span class="font-mono text-slate-900">{{ data.get('risk_pagination', {}).get('end', 0) }}</span>
+                            of
+                            <span class="font-mono text-slate-900">{{ data.get('risk_pagination', {}).get('total', 0) }}</span>
+                            records
+                        </div>
+                        <div class="flex items-center gap-2">
+                            {% if data.get('risk_pagination', {}).get('has_previous') %}
+                            <a href="{{ data.get('risk_pagination', {}).get('previous_url') }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-black transition-colors">Previous</a>
+                            {% else %}
+                            <span class="px-3 py-2 bg-slate-50 text-slate-300 rounded-lg text-[11px] font-black cursor-not-allowed">Previous</span>
+                            {% endif %}
+
+                            <span class="px-3 py-2 text-[11px] font-black text-slate-500">
+                                Page {{ data.get('risk_pagination', {}).get('page', 1) }} / {{ data.get('risk_pagination', {}).get('total_pages', 1) }}
+                            </span>
+
+                            {% if data.get('risk_pagination', {}).get('has_next') %}
+                            <a href="{{ data.get('risk_pagination', {}).get('next_url') }}" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-black transition-colors">Next</a>
+                            {% else %}
+                            <span class="px-3 py-2 bg-slate-50 text-slate-300 rounded-lg text-[11px] font-black cursor-not-allowed">Next</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if request.query_params.get('action') == 'create_user' %}
+        <div class="max-w-xl space-y-10">
+            <div class="space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight">Provision Identity Credentials</h2>
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">Inject verified system accounts into the decentralized data structures</p>
+                </div>
+
+                <form action="/admin/config/create-user" method="POST" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">System Display Title Name</label>
+                            <input type="text" name="display_name" required placeholder="Dr. Jennifer Sterling" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Unique USN / Employee ID</label>
+                            <input type="text" name="usn_or_id" required placeholder="EMP-2026-9482" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Institutional Network Mail Address</label>
+                        <input type="email" name="email" required placeholder="j.sterling@university.edu" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Access Verification Passphrase</label>
+                        <input type="password" name="password" required placeholder="••••••••••••" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Architectural Hierarchy Role</label>
+                            <select name="role" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none cursor-pointer">
+                                <option value="student">Student Ledger Node</option>
+                                <option value="mentor">Faculty Mentor Node</option>
+                                <option value="counselor">Encrypted Counselor Vault Node</option>
+                                {% if data.get('role') == 'superadmin' %}
+                                <option value="admin">Departmental Admin Operator</option>
+                                <option value="superadmin">Global Superadmin Node</option>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Department Multi-Tenant Domain</label>
+                            {% if data.get('role') == 'superadmin' %}
+                            <select name="department" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none cursor-pointer">
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Science">Information Science</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Mechanical">Mechanical</option>
+                                <option value="Global">Global Operations</option>
+                            </select>
+                            {% else %}
+                            <input type="text" name="department" readonly value="{{ data.get('department') }}" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl select-none outline-none">
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-indigo-600 text-white font-black text-xs rounded-xl shadow-md hover:bg-indigo-700 transition-all transform active:scale-[0.99] mt-2">
+                        Commit Identity Record Matrix ➔
+                    </button>
+                </form>
+            </div>
+
+            <div class="pt-8 border-t border-slate-200 space-y-6">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Bulk Account Provisioning Matrix</h3>
+                    <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Stream multiple structural configurations directly into authentication directories using a spreadsheet file</p>
+                </div>
+
+                <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="space-y-0.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Target User Matrix Reference Schema</label>
+                            <p class="text-[11px] text-slate-300 font-medium">Select a structural account blueprint type to download its pre-formatted template data table.</p>
+                        </div>
+                        <select id="csvTemplateSelector" onchange="switchTemplateContext()" class="text-xs font-bold px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none cursor-pointer">
+                            <option value="student">Student Node Blueprint</option>
+                            <option value="mentor">Faculty Mentor Node Blueprint</option>
+                            {% if data.get('role') == 'superadmin' %}
+                            <option value="counselor">Counselor Vault Node Blueprint</option>
+                            <option value="admin">Departmental Admin Operator Blueprint</option>
+                            <option value="superadmin">Global Superadmin Node Blueprint</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-4 text-xs">
+                        <div id="templateMetaDescription" class="text-[11px] font-semibold text-slate-400 leading-relaxed max-w-md"></div>
+                        <a id="templateDownloadBtn" href="#" download="student_import_template.csv" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[11px] rounded-xl transition-all shadow-md active:scale-95">
+                            <span>📥</span> Download Schema Template
+                        </a>
+                    </div>
+                </div>
+                
+                <form id="bulkUploadForm" action="/admin/config/upload-csv" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <input type="hidden" name="upload_type" id="hiddenUploadTypeField" value="student_data">
+                    
+                    <div class="p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-center space-y-2 relative hover:bg-slate-100/50 transition-colors group">
+                        <span id="bulkUploadIconIndicator" class="text-3xl block transition-transform group-hover:scale-110">📁</span>
+                        <span id="bulkUploadLabelIndicator" class="text-xs font-bold text-slate-700 block">Drop or Browse Tabular Matrix (.csv)</span>
+                        <span id="bulkHeaderHelperIndicator" class="text-[10px] text-slate-400 font-medium block"></span>
+                        
+                        <input type="file" name="file" id="bulkCsvFileInputElement" accept=".csv" required 
+                            onchange="handleBulkFileSelectionState()" 
+                            class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                    </div>
+
+                    <div id="uploadProgressContainer" class="hidden space-y-3 p-4 border border-slate-200 rounded-2xl bg-slate-50 transition-all duration-300">
+                        <div class="flex justify-between text-xs font-bold text-slate-700">
+                            <span id="progressStatusText">Analyzing local CSV row mapping vectors...</span>
+                            <span id="progressPercentage" class="font-mono text-indigo-600 font-black">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                            <div id="progressBarFill" class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-150" style="width: 0%"></div>
+                        </div>
+                        <div id="uploadFinalSummary" class="hidden text-xs font-semibold p-3 border-l-4 border-emerald-500 bg-emerald-50 text-emerald-800 rounded-r-xl">
+                            <strong>Import Matrix Status:</strong> <span id="summaryMetricsText"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-500 font-medium">
+                        <span class="font-bold text-slate-700 uppercase tracking-wide block text-[10px] mb-1">Privilege Boundary Indicators:</span>
+                        {% if data.get('role') != 'superadmin' %}
+                        <p class="text-amber-600 font-bold">• Scope Boundary: Generated profiles are restricted to the <span class="underline">{{ data.get('department') }}</span> domain layout context.</p>
+                        <p class="text-rose-600 font-semibold">• Security Firewall Rule: Multi-tenant protection routines automatically skip structural row evaluations attempting privilege elevations.</p>
+                        {% else %}
+                        <p class="text-emerald-600 font-semibold">• Superadmin Unrestricted Workspace: Full administrative capabilities are active across all regional departments.</p>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" id="bulkUploadSubmitButton" disabled 
+                            class="w-full py-3 bg-slate-300 text-slate-500 font-black text-xs rounded-xl shadow-md cursor-not-allowed transition-all">
+                        Execute Batch Import Routine ➔
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            const activeAdminDept = "{{ data.get('department', 'Computer Science') }}";
+
+            const templateDatabase = {
+                student: {
+                    filename: "student_import_template.csv",
+                    desc: "Used for batch provisioning undergraduate/graduate student nodes inside your specific department.",
+                    csv: `display_name,usn_or_id,email,password,role,department,current_semester,current_year,last_advanced_academic_year\n"Alice Smith","1MS23CS001","alice.smith@university.edu","SecurePass123#","student","${activeAdminDept}",1,1,2023\n"Bob Johnson","1MS23CS002","bob.johnson@university.edu","StudentPass456$","student","${activeAdminDept}",1,1,2023`
+                },
+                mentor: {
+                    filename: "faculty_mentor_template.csv",
+                    desc: "Used for establishing teaching professors and advisory faculty node headers linked to your department.",
+                    csv: `display_name,usn_or_id,email,password,role,department\n"Dr. Jennifer Sterling","EMP-2026-9482","j.sterling@university.edu","ProfShield2026$","mentor","${activeAdminDept}"\n"Prof. Alan Turing","EMP-2026-1104","a.turing@university.edu","EnigmaDecoded88*","mentor","${activeAdminDept}"`
+                },
+                counselor: {
+                    filename: "counselor_vault_template.csv",
+                    desc: "Configures accounts for counselor wellness service monitors.",
+                    csv: "display_name,usn_or_id,email,password,role,department\n\"Sarah Jenkins\",\"CNS-2026-0511\",\"s.jenkins@university.edu\",\"VaultGuardian7!\",\"counselor\",\"Global Operations\""
+                },
+                admin: {
+                    filename: "department_admin_template.csv",
+                    desc: "⚠️ REQUIRES GLOBAL SUPERUSER PRIVILEGES. Sets up regional tenant standard administrative context blocks.",
+                    csv: "display_name,usn_or_id,email,password,role,department\n\"Dean Henderson\",\"ADM-CS-01\",\"cs.dean@university.edu\",\"CSAdminControl#1\",\"admin\",\"Computer Science\""
+                },
+                superadmin: {
+                    filename: "global_superadmin_template.csv",
+                    desc: "⚠️ CRITICAL SYSTEM LEVEL CLEARANCE. Injects root infrastructure operators.",
+                    csv: "display_name,usn_or_id,email,password,role,department\n\"Root Orchestrator\",\"SUP-001\",\"root.admin@university.edu\",\"GlobalMatrixOverride2026!\",\"superadmin\",\"Global Operations\""
+                }
+            };
+
+            function switchTemplateContext() {
+                const selector = document.getElementById("csvTemplateSelector");
+                const downloadBtn = document.getElementById("templateDownloadBtn");
+                const descContainer = document.getElementById("templateMetaDescription");
+                const hiddenInput = document.getElementById("hiddenUploadTypeField"); 
+                
+                if (!selector || !templateDatabase[selector.value]) return;
+                
+                const activeContext = templateDatabase[selector.value];
+                if (descContainer) descContainer.textContent = activeContext.desc;
+                
+                if (hiddenInput) {
+                    hiddenInput.value = selector.value;
+                }
+                
+                if (downloadBtn) {
+                    downloadBtn.setAttribute("download", activeContext.filename);
+                    downloadBtn.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(activeContext.csv));
+                }
+            }
+
+            function handleBulkFileSelectionState() {
+                const fileInput = document.getElementById("bulkCsvFileInputElement");
+                const statusText = document.getElementById("bulkUploadLabelIndicator");
+                const iconContainer = document.getElementById("bulkUploadIconIndicator");
+                const submitBtn = document.getElementById("bulkUploadSubmitButton");
+
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    const uploadedFilename = fileInput.files[0].name;
+                    statusText.innerHTML = `File Uploaded: <span class="text-emerald-600 font-mono underline">${uploadedFilename}</span>`;
+                    iconContainer.textContent = "✅";
+                    
+                    if (submitBtn) {
+                        submitBtn.removeAttribute("disabled");
+                        submitBtn.className = "w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-colors transform active:scale-[0.99] cursor-pointer opacity-100";
+                    }
+                } else {
+                    if (statusText) statusText.textContent = "Drop or Browse Tabular Matrix (.csv)";
+                    if (iconContainer) iconContainer.textContent = "📁";
+                    if (submitBtn) {
+                        submitBtn.setAttribute("disabled", "true");
+                        submitBtn.className = "w-full py-3 bg-slate-300 text-slate-500 font-black text-xs rounded-xl shadow-md cursor-not-allowed transition-all opacity-50";
+                    }
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                switchTemplateContext(); 
+
+                const bulkForm = document.getElementById("bulkUploadForm");
+                if (bulkForm) {
+                    bulkForm.addEventListener("submit", function(e) {
+                        e.preventDefault(); // Stop native HTML redirect crash
+                        
+                        const progressContainer = document.getElementById("uploadProgressContainer");
+                        const barFill = document.getElementById("progressBarFill");
+                        const percentText = document.getElementById("progressPercentage");
+                        const statusText = document.getElementById("progressStatusText");
+                        const submitBtn = document.getElementById("bulkUploadSubmitButton");
+
+                        if (progressContainer) progressContainer.classList.remove("hidden");
+                        if (submitBtn) submitBtn.disabled = true;
+
+                        const formData = new FormData(this);
+                        const xhr = new XMLHttpRequest();
+                        xhr.open("POST", "/admin/config/upload-csv");
+
+                        xhr.upload.addEventListener("progress", function(event) {
+                            if (event.lengthComputable) {
+                                const percent = Math.round((event.loaded / event.total) * 100);
+                                const displayPercent = Math.min(percent, 90);
+                                if (barFill) barFill.style.width = displayPercent + "%";
+                                if (percentText) percentText.innerText = displayPercent + "%";
+                                if (statusText) statusText.innerText = "Processing rows with structural ledger models...";
+                            }
+                        });
+
+                        // Locate this section inside your template script execution loop
+                        xhr.addEventListener("load", function() {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                try {
+                                    let result;
+                                    // Safe JSON validation parsing
+                                    if (xhr.responseText.trim().startsWith("{")) {
+                                        result = JSON.parse(xhr.responseText);
+                                    } else {
+                                        result = { success: true, updated: null };
+                                    }
+
+                                    if (result.success || xhr.status === 200) {
+                                        const barFill = document.getElementById("progressBarFill");
+                                        const percentText = document.getElementById("progressPercentage");
+                                        const statusText = document.getElementById("progressStatusText");
+
+                                        if (barFill) barFill.style.width = "100%";
+                                        if (percentText) percentText.innerText = "100%";
+                                        
+                                        if (statusText) {
+                                            statusText.className = "text-emerald-600 font-bold text-xs";
+                                            
+                                            // DYNAMIC FIX: Extract the total records counted by the FastAPI engine
+                                            if (result.updated !== undefined && result.updated !== null) {
+                                                statusText.innerText = `✅ Ingestion complete! Successfully uploaded ${result.updated} records. Reloading panel...`;
+                                            } else {
+                                                statusText.innerText = "✅ Bulk sync successful! Reloading panel...";
+                                            }
+                                        }
+
+                                        // Redirect back to your active admin panel safely retaining the metrics message
+                                        setTimeout(() => {
+                                            const countParam = result.updated ? `&count=${result.updated}` : '';
+                                            window.location.href = `/dashboard/admin?action=create_user&tab=provision&msg=Batch+Ingestion+Complete${countParam}`;
+                                        }, 1500);
+                                    } else {
+                                        displayError(result.msg || "CSV matrix rejected by validation rules.");
+                                    }
+                                } catch (err) {
+                                    displayError("Failed to interpret system response metrics.");
+                                }
+                            } else {
+                                displayError("Relational database transaction boundary error.");
+                            }
+                        });
+
+                        xhr.addEventListener("error", function() {
+                            displayError("Network connectivity pipeline loss.");
+                        });
+
+                        function displayError(msg) {
+                            if (statusText) {
+                                statusText.className = "text-rose-600 font-bold block";
+                                statusText.innerText = `❌ ${msg}`;
+                            }
+                            if (barFill) barFill.className = "bg-rose-500 h-full rounded-full";
+                            if (submitBtn) submitBtn.disabled = false;
+                        }
+
+                        xhr.send(formData);
+                    });
+                }
+            });
+        </script>
+        {% endif %}
+
+        {% if request.query_params.get('action') == 'assign_mentor' and current_user.role in ['admin','superadmin'] %}
+        <div class="space-y-10">
+            <div class="w-full space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight">Enforce Faculty Linkage</h2>
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">Select students from the ledger matrix grid checklist below to batch target operational assignments</p>
+                </div>
+
+                <form action="/admin/config/assign-mentor" method="POST" class="space-y-6">
+                    
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-end gap-4">
+                        <div class="w-full md:w-1/2 space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Target Faculty Mentor Advisor</label>
+                            <select name="mentor_id_code" id="mentorDropdown" required class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 transition-all cursor-pointer">
+                                <option value="" disabled selected>-- Select Responsible Supervisor Mentor --</option>
+                                {% for mentor in data.get('all_mentors_list', []) %}
+                                    <option value="{{ mentor.usn_or_id }}">{{ mentor.display_name }} ({{ mentor.usn_or_id }}) - Assigned: {{ mentor.assigned_count }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="w-full md:w-1/2 flex items-center gap-3">
+                            <div class="flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-xl w-full h-[42px]">
+                                <input type="checkbox" id="deallocateCheck" name="deallocate" value="True" onchange="toggleMentorSelectState()" class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                <label for="deallocateCheck" class="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                                    Deallocate Checked Targets (Reset to Unassigned)
+                                </label>
+                            </div>
+
+                            <button type="submit" class="whitespace-nowrap px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all h-[42px]">
+                                Commit Transaction ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs mt-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                            <div>
+                                <h4 class="text-base font-black text-slate-800 tracking-tight">Active Advising Matrix Ledger</h4>
+                                <p class="text-[11px] font-medium text-slate-400">Comprehensive grid of all managed student roster profiles and active structural assignments</p>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto border border-slate-100 rounded-xl shadow-xs">
+                            <table class="w-full text-left border-collapse" id="advisingMatrixTable">
+                                <thead>
+                                    <tr class="bg-slate-900 border-b border-slate-800 text-[10px] font-black text-slate-300 uppercase tracking-wider font-mono">
+                                        <th class="py-3.5 px-4 text-center w-12">
+                                            <input type="checkbox" id="selectAllStudents" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 bg-slate-800 border-slate-700">
+                                        </th>
+                                        <th class="py-3.5 px-4 cursor-pointer select-none hover:bg-slate-800 hover:text-white transition-colors" onclick="sortMatrixLedgerColumn(1, 'string')">
+                                            <div class="flex items-center gap-1.5">
+                                                <span>USN / Reg ID</span>
+                                                <span class="text-slate-500 text-xs font-normal" id="sortIcon1">↕</span>
+                                            </div>
+                                        </th>
+                                        <th class="py-3.5 px-4 cursor-pointer select-none hover:bg-slate-800 hover:text-white transition-colors" onclick="sortMatrixLedgerColumn(2, 'string')">
+                                            <div class="flex items-center gap-1.5">
+                                                <span>Student Display Name</span>
+                                                <span class="text-slate-500 text-xs font-normal" id="sortIcon2">↕</span>
+                                            </div>
+                                        </th>
+                                        <th class="py-3.5 px-4 cursor-pointer select-none hover:bg-slate-800 hover:text-white transition-colors" onclick="sortMatrixLedgerColumn(3, 'string')">
+                                            <div class="flex items-center gap-1.5">
+                                                <span>Department</span>
+                                                <span class="text-slate-500 text-xs font-normal" id="sortIcon3">↕</span>
+                                            </div>
+                                        </th>
+                                        <th class="py-3.5 px-4 cursor-pointer select-none hover:bg-slate-800 hover:text-white transition-colors" onclick="sortMatrixLedgerColumn(4, 'number')">
+                                            <div class="flex items-center gap-1.5">
+                                                <span>Semester</span>
+                                                <span class="text-slate-500 text-xs font-normal" id="sortIcon4">↕</span>
+                                            </div>
+                                        </th>
+                                        <th class="py-3.5 px-4 cursor-pointer select-none hover:bg-slate-800 hover:text-white transition-colors" onclick="sortMatrixLedgerColumn(5, 'string')">
+                                            <div class="flex items-center gap-1.5">
+                                                <span>Active Mentor Bond State</span>
+                                                <span class="text-slate-500 text-xs font-normal" id="sortIcon5">↕</span>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr class="bg-slate-50 border-b border-slate-200" id="filterInputsRow">
+                                        <th class="py-2 px-4 bg-slate-100/50"></th>
+                                        <th class="py-2 px-2">
+                                            <input type="text" onkeyup="filterMatrixLedgerTable()" placeholder="Filter USN..." class="column-filter w-full text-[11px] font-bold px-2 py-1 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-indigo-500 transition-all">
+                                        </th>
+                                        <th class="py-2 px-2">
+                                            <input type="text" onkeyup="filterMatrixLedgerTable()" placeholder="Filter Name..." class="column-filter w-full text-[11px] font-bold px-2 py-1 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-indigo-500 transition-all">
+                                        </th>
+                                        <th class="py-2 px-2">
+                                            <input type="text" onkeyup="filterMatrixLedgerTable()" placeholder="Filter Dept..." class="column-filter w-full text-[11px] font-bold px-2 py-1 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-indigo-500 transition-all">
+                                        </th>
+                                        <th class="py-2 px-2">
+                                            <input type="text" onkeyup="filterMatrixLedgerTable()" placeholder="Filter Term..." class="column-filter w-full text-[11px] font-bold px-2 py-1 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-indigo-500 transition-all">
+                                        </th>
+                                        <th class="py-2 px-2">
+                                            <input type="text" onkeyup="filterMatrixLedgerTable()" placeholder="Filter Bond Status..." class="column-filter w-full text-[11px] font-bold px-2 py-1 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-indigo-500 transition-all">
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs font-bold text-slate-700" id="matrixTableBody">
+                                    {% for student in student_list %}
+                                        <tr class="hover:bg-slate-50/70 transition-colors ledger-row">
+                                            <td class="py-3.5 px-4 text-center">
+                                                <input type="checkbox" name="student_usns" value="{{ student.usn_or_id }}" class="student-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            </td>
+                                            <td class="py-3.5 px-4 font-mono text-slate-900 tracking-tight">{{ student.usn_or_id }}</td>
+                                            <td class="py-3.5 px-4">{{ student.display_name or 'Anonymous User Profile' }}</td>
+                                            <td class="py-3.5 px-4">
+                                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] uppercase font-bold border border-slate-200/60">{{ student.department }}</span>
+                                            </td>
+                                            <td class="py-3.5 px-4 font-mono text-slate-900">
+                                                {% if student.current_semester %}
+                                                    {{ student.current_semester }}
+                                                {% else %}
+                                                    <span class="text-slate-400 font-normal italic">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-3.5 px-4">
+                                                {% if student.mentor_name %}
+                                                    <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
+                                                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                        <span>{{ student.mentor_name }} ({{ student.mentor_id_code }})</span>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="flex items-center gap-1.5 text-rose-500 font-medium italic">
+                                                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                                                        <span>Unassigned</span>
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr id="emptyMatrixRow">
+                                            <td colspan="6" class="py-12 text-center text-slate-400 text-xs font-medium italic">
+                                                No student structural items found matching the designated filter coordinates.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // 1. CONDITIONAL DROPDOWN RESET EXECUTOR
+            function toggleMentorSelectState() {
+                const isChecked = document.getElementById("deallocateCheck").checked;
+                const dropdown = document.getElementById("mentorDropdown");
+                
+                if (isChecked) {
+                    dropdown.style.opacity = "0.4";
+                    dropdown.removeAttribute("required");
+                    dropdown.setAttribute("disabled", "true");
+                    dropdown.value = ""; // Clear current selection
+                } else {
+                    dropdown.style.opacity = "1";
+                    dropdown.setAttribute("required", "true");
+                    dropdown.removeAttribute("disabled");
+                }
+            }
+
+            // 2. BULK CHECKBOX SELECTION ENGINE
+            const selectAllCheckbox = document.getElementById('selectAllStudents');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.student-checkbox');
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                });
+            }
+
+            // 3. MULTI-FIELD MATRIX COLUMN FILTERING ENGINE
+            function filterMatrixLedgerTable() {
+                const filterInputs = document.querySelectorAll(".column-filter");
+                const filters = Array.from(filterInputs).map(input => input.value.toUpperCase().trim());
+                const rows = document.querySelectorAll(".ledger-row");
+                let visibleRowsCount = 0;
+
+                rows.forEach(row => {
+                    let matchAllColumns = true;
+
+                    for (let i = 0; i < filters.length; i++) {
+                        const filterValue = filters[i];
+                        if (filterValue !== "") {
+                            const cell = row.cells[i + 1]; 
+                            const cellText = (cell.textContent || cell.innerText).toUpperCase();
+                            
+                            if (cellText.indexOf(filterValue) === -1) {
+                                matchAllColumns = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (matchAllColumns) {
+                        row.style.display = "";
+                        visibleRowsCount++;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                const emptyStateRow = document.getElementById("emptyMatrixRow");
+                if (emptyStateRow) {
+                    emptyStateRow.style.display = (visibleRowsCount === 0) ? "" : "none";
+                }
+            }
+
+            // 4. REFLEXIVE MULTI-DATA TYPE COLUMN SORT ENGINE
+            let currentSortColumn = -1;
+            let isAscendingOrder = true;
+
+            function sortMatrixLedgerColumn(columnIndex, type = 'string') {
+                const tableBody = document.getElementById("matrixTableBody");
+                const rows = Array.from(tableBody.querySelectorAll(".ledger-row"));
+                
+                if (currentSortColumn === columnIndex) {
+                    isAscendingOrder = !isAscendingOrder;
+                } else {
+                    isAscendingOrder = true;
+                    currentSortColumn = columnIndex;
+                }
+
+                for (let i = 1; i <= 5; i++) {
+                    const icon = document.getElementById(`sortIcon${i}`);
+                    if (icon) icon.innerText = "↕";
+                }
+
+                const activeIcon = document.getElementById(`sortIcon${columnIndex}`);
+                if (activeIcon) {
+                    activeIcon.innerText = isAscendingOrder ? "▲" : "▼";
+                }
+
+                const sortedRows = rows.sort((rowA, rowB) => {
+                    let cellA = rowA.cells[columnIndex].textContent.trim();
+                    let cellB = rowB.cells[columnIndex].textContent.trim();
+
+                    if (type === 'number') {
+                        let numA = parseInt(cellA.replace(/^\D+/g, '')) || 0;
+                        let numB = parseInt(cellB.replace(/^\D+/g, '')) || 0;
+                        return isAscendingOrder ? numA - numB : numB - numA;
+                    } else {
+                        return isAscendingOrder ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+                    }
+                });
+
+                sortedRows.forEach(row => tableBody.appendChild(row));
+                
+                const emptyStateRow = document.getElementById("emptyMatrixRow");
+                if (emptyStateRow) {
+                    tableBody.appendChild(emptyStateRow);
+                }
+            }
+        </script>
+        {% endif %}
+        
+        {% if request.query_params.get('action') == 'batch-import' %}
+        <div class="max-w-xl space-y-6 animate-fadeIn">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Bulk Account Provisioning Matrix</h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Stream multiple structural configurations directly into authentication directories using a spreadsheet file.</p>
+            </div>
+
+            <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="space-y-0.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Upload Category Matrix Target</label>
+                        <p class="text-[11px] text-slate-300 font-medium">Select a structural category sub-section to fetch its blueprint.</p>
+                    </div>
+                    <select id="bulkUploadSubSelector" onchange="switchUploadContext()" class="text-xs font-bold px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none cursor-pointer">
+                        <option value="student_data">1. Student Data Entry</option>
+                        <option value="academic">2. Student IA & Attendance Update</option>
+                        <option value="mentor_data">3. Mentor Data Entry</option>
+                        <option value="course_catalog">4. Master Course Inventory</option>
+                        <option value="course_registration">5. Course Enrollment Relationships</option>
+                    </select>
+                </div>
+                <div id="academicSubSectionWrapper" class="space-y-1.5 flex-1 hidden">
+                    <label class="text-[10px] font-black text-amber-500 uppercase tracking-wide block">Ledger Component Sub-Target</label>
+                    <select id="academicSubComponentSelector" onchange="switchUploadContext()" class="w-full text-xs font-bold px-3 py-2.5 bg-amber-950/40 border border-amber-800/60 rounded-xl text-amber-200 focus:outline-none cursor-pointer">
+                        <option value="ia1">Internal Assessment - 1 (IA-1)</option>
+                        <option value="ia2">Internal Assessment - 2 (IA-2)</option>
+                        <option value="ia_avg">Internal Assessment - Average (IA-AVG)</option>
+                        <option value="see">Semester End Examination (SEE)</option>
+                    </select>
+                </div>
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-4 text-xs">
+                    <div id="bulkTemplateMetaDescription" class="text-[11px] font-semibold text-slate-400 leading-relaxed max-w-sm">
+                    </div>
+                    <a id="bulkTemplateDownloadBtn" href="#" download="template.csv" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[11px] rounded-xl transition-all shadow-md active:scale-95">
+                        <span>📥</span> Download Template
+                    </a>
+                </div>
+            </div>
+
+            <form id="bulkUploadSystemForm" action="/admin/config/batch-import" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" name="upload_type" id="hiddenUploadTypeField" value="student_data">
+                
+                <div class="p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-center space-y-2 relative hover:bg-slate-100/50 transition-colors group">
+                    <span id="bulkUploadIconIndicator" class="text-3xl block transition-transform group-hover:scale-110">📁</span>
+                    <span id="bulkUploadLabelIndicator" class="text-xs font-bold text-slate-700 block">Drop or Browse Tabular Matrix (.csv)</span>
+                    <span id="bulkHeaderHelperIndicator" class="text-[10px] text-slate-400 font-medium block"></span>
+                    
+                    <input type="file" name="file" id="bulkCsvFileInputElement" accept=".csv" required 
+                           onchange="handleBulkFileSelectionState()" 
+                           class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                </div>
+
+                <div id="uploadProgressContainer" class="hidden p-4 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span id="progressStatusText" class="text-slate-700 font-bold text-xs">Streaming file packets to server ledger node...</span>
+                        <span id="progressPercentage" class="text-indigo-600 font-black text-xs">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                        <div id="progressBarFill" class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-150" style="width: 0%"></div>
+                    </div>
+                    <div id="uploadFinalSummary" class="hidden">
+                        <p id="summaryMetricsText"></p>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-500 font-medium">
+                    <span class="font-bold text-slate-700 uppercase tracking-wide block text-[10px] mb-1">Privilege Boundary Indicators:</span>
+                    {% if data.get('role') != 'superadmin' %}
+                    <p class="text-amber-600 font-bold">• Scope Boundary: Generated profiles are restricted to the <span class="underline">{{ data.get('department') }}</span> domain layout context.</p>
+                    <p class="text-rose-600 font-semibold">• Security Firewall Rule: Multi-tenant protection routines automatically skip structural row evaluations attempting privilege elevations.</p>
+                    {% else %}
+                    <p class="text-emerald-600 font-semibold">• Superadmin Unrestricted Workspace: Full administrative capabilities are active across all regional departments.</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" id="bulkUploadSubmitButton" disabled 
+                        class="w-full py-3 bg-slate-300 text-slate-500 font-black text-xs rounded-xl shadow-md cursor-not-allowed transition-all">
+                    Execute Batch Import Routine ➔
+                </button>
+            </form>
+        </div>
+
+        <script>
+            const currentAdminDepartmentCtx = "{{ data.get('department', 'Computer Science') }}";
+
+            const bulkUploadRegistry = {
+                student_data: {
+                    hiddenValue: "student_data",
+                    filename: "student_profile_bulk_entry_template.csv",
+                    desc: "Provisions system accounts and injects detailed family, contact, and prior academic benchmarks directly into the student_info profile table matrix.",
+                    headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">display_name,usn_or_id,email,password,department,father_name,mother_name,guardian_name,phone_number,fathers_phone,mothers_phone,address,tenth_percentage,twelfth_percentage,diploma_percentage</code>',
+                    csv: `display_name,usn_or_id,email,department,father_name,mother_name,guardian_name,phone_number,fathers_phone,mothers_phone,address,tenth_percentage,twelfth_percentage,diploma_percentage\n"John Doe","1MS23CS012","john.doe@university.edu","${currentAdminDepartmentCtx}","Robert Doe","Jane Doe","N/A","9876543210","9876543211","9876543212","123 University Campus Lane Road",88.50,91.20,0.00\n"Jane Smith","1MS23CS088","jane.smith@university.edu","${currentAdminDepartmentCtx}","Alan Smith","Mary Smith","N/A","9123456780","9123456781","9123456782","45 Faculty Residential Quarters Block B",94.00,0.00,85.60]`
+                },
+                // academic: {
+                //     hiddenValue: "academic",
+                //     filename: "student_ia_attendance_template.csv",
+                //     desc: "Updates running internal assessments (IA), semester timelines, cumulative CGPA, outstanding backlogs, and total attendance variables.",
+                //     headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">usn_or_id,semester,overall_attendance,cumulative_cgpa,backlogs_count</code>',
+                //     csv: "usn_or_id,semester,overall_attendance,cumulative_cgpa,backlogs_count\n\"1MS23CS012\",3,82.4,8.45,0\n\"1MS23CS088\",3,71.2,6.10,2"
+                // },
+                mentor_data: {
+                    hiddenValue: "mentor_data",
+                    filename: "faculty_mentor_bulk_template.csv",
+                    desc: "Registers comprehensive teaching faculty profiles, tracking background credentials, professional tenure milestones, and institutional experience structures.",
+                    headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded text-[10px]">display_name,usn_or_id,email,password,department,designation,phone_number,gender,highest_qualification,pan_card_number,aadhaar_card_number,date_of_joining,relieving_date,experience_in_college,teaching_experience_years,research_experience_years,industry_experience_years,other_experience_years,total_work_experience_years</code>',
+                    csv: `display_name,usn_or_id,email,department,designation,phone_number,gender,highest_qualification,pan_card_number,aadhaar_card_number,date_of_joining,relieving_date,experience_in_college,teaching_experience_years,research_experience_years,industry_experience_years,other_experience_years,total_work_experience_years
+                        "Dr. Alan Turing","EMP-2026-041","a.turing@university.edu","${currentAdminDepartmentCtx}","Associate Professor","+919876543210","Male","Ph.D. in Computer Science","ABCDE1234F","123456789012","2026-01-15 09:00:00","",2,12.5,4.0,2.0,0.0,18.5
+                        "Prof. Jennifer Sterling","EMP-2026-921","j.sterling@university.edu","${currentAdminDepartmentCtx}","Professor & Head","+919876543211","Female","Ph.D. in Data Analytics","WXYZ9876M","987654321098","2026-02-01 10:00:00","",0,15.0,8.5,0.0,1.5,25.0`
+                },
+                course_catalog: {
+                    hiddenValue: "course_catalog",
+                    filename: "master_course_inventory_template.csv",
+                    desc: "Populates the central ledger with structural curriculum offerings. Adds course identities indexed by system codes.",
+                    headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">course_code,course_name,assigned_semester,department</code>',
+                    csv: `course_code,course_name,assigned_semester,department\n"18CS51","Computer Networks",5,"${currentAdminDepartmentCtx}"\n"18CS52","Design and Analysis of Algorithms",5,"${currentAdminDepartmentCtx}"`
+                },
+                course_registration: {
+                    hiddenValue: "course_registration",
+                    filename: "course_enrollment_relationships_template.csv",
+                    desc: "Bridges student alphanumeric identities (USNs/IDs) directly to declared course codes, indexing structural terms while preventing redundant enrollment conflicts.",
+                    headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">student_id,course_code1,course_code2,course_code3,course_code4,course_code5,course_code6,course_code7,course_code8,course_code9,semester,academic_year</code>',   
+                    csv: "student_id,course_code1,course_code2,course_code3,course_code4,course_code5,course_code6,course_code7,course_code8,course_code9,semester,academic_year\n\"1MS23CS012\",\"18CS51\",\"18CS52\",\"18CS53\",\"18CS54\",\"18CS55\",\"18CS56\",\"18CS57\",\"18CS59\",\"NA\",5,\"2025-2026\"\n\"1MS23CS088\",\"18CS51\",\"18CS52\",\"18CS53\",\"18CS54\",\"18CS55\",\"18CS56\",\"18CS57\",\"18CS59\",\"NA\",5,\"2025-2026\""
+                },
+                academic_ia1: {
+                    hiddenValue: "academic",
+                    filename: "student_marks_ia1_template.csv",
+                    desc: "Updates Internal Assessment 1 (IA-1) scores across 9 possible active course registration slots simultaneously per row.",
+                    headersText: 'Mapping Order: <code class="font-mono bg-amber-200 text-amber-800 px-1 py-0.5 rounded text-[11px]">usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1...[up to slot 9]</code>',
+                    csv: `usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1,course_code2,marks2,attendance_percentage2,course_code3,marks3,attendance_percentage3,course_code4,marks4,attendance_percentage4,course_code5,marks5,attendance_percentage5,course_code6,marks6,attendance_percentage6,course_code7,marks7,attendance_percentage7,course_code8,marks8,attendance_percentage8,course_code9,marks9,attendance_percentage9\n"1HK24CS001","John Doe",4,"2025-2026","22CS41",42.5,88.0,"22CS42",39.0,91.5,"22CS43",45.0,85.0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0\n"1HK24CS002","Jane Smith",4,"2025-2026","22CS41",38.0,92.0,"22CS42",41.5,89.0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0`
+                },
+                academic_ia2: {
+                    hiddenValue: "academic",
+                    filename: "student_marks_ia2_template.csv",
+                    desc: "Updates Internal Assessment 2 (IA-2) scores across 9 possible active course registration slots simultaneously per row.",
+                    headersText: 'Mapping Order: <code class="font-mono bg-amber-200 text-amber-800 px-1 py-0.5 rounded text-[11px]">usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1...[up to slot 9]</code>',
+                    csv: `usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1,course_code2,marks2,attendance_percentage2,course_code3,marks3,attendance_percentage3,course_code4,marks4,attendance_percentage4,course_code5,marks5,attendance_percentage5,course_code6,marks6,attendance_percentage6,course_code7,marks7,attendance_percentage7,course_code8,marks8,attendance_percentage8,course_code9,marks9,attendance_percentage9\n"1HK24CS001","John Doe",4,"2025-2026","22CS41",40.0,90.5,"22CS42",42.0,94.0,"22CS43",38.5,87.0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0`
+                },
+                academic_ia_avg: {
+                    hiddenValue: "academic",
+                    filename: "student_marks_ia_avg_template.csv",
+                    desc: "Performs direct administrative average score overrides (IA-AVG) across all course registrations mapped to this structural grid matrix.",
+                    headersText: 'Mapping Order: <code class="font-mono bg-amber-200 text-amber-800 px-1 py-0.5 rounded text-[11px]">usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1...[up to slot 9]</code>',
+                    csv: `usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1,course_code2,marks2,attendance_percentage2,course_code3,marks3,attendance_percentage3,course_code4,marks4,attendance_percentage4,course_code5,marks5,attendance_percentage5,course_code6,marks6,attendance_percentage6,course_code7,marks7,attendance_percentage7,course_code8,marks8,attendance_percentage8,course_code9,marks9,attendance_percentage9\n"1HK24CS001","John Doe",4,"2025-2026","22CS41",41.25,90.5,"22CS42",40.5,94.0,"22CS43",41.75,87.0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0`
+                },
+                academic_see: {
+                    hiddenValue: "academic",
+                    filename: "student_marks_see_template.csv",
+                    desc: "Populates Semester End Examination (SEE) performance evaluations across the 9 sequential tracking slots mapped below.",
+                    headersText: 'Mapping Order: <code class="font-mono bg-amber-200 text-amber-800 px-1 py-0.5 rounded text-[11px]">usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1...[up to slot 9]</code>',
+                    csv: `usn_or_id,student_name,semester,academic_year,course_code1,marks1,attendance_percentage1,course_code2,marks2,attendance_percentage2,course_code3,marks3,attendance_percentage3,course_code4,marks4,attendance_percentage4,course_code5,marks5,attendance_percentage5,course_code6,marks6,attendance_percentage6,course_code7,marks7,attendance_percentage7,course_code8,marks8,attendance_percentage8,course_code9,marks9,attendance_percentage9\n"1HK24CS001","John Doe",4,"2025-2026","22CS41",82.0,90.5,"22CS42",76.5,94.0,"22CS43",88.0,87.0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0,"NA",0,0`
+                }
+            };
+
+            // function switchUploadContext() {
+            //     const selectionKey = document.getElementById("bulkUploadSubSelector").value;
+            //     const activeModel = bulkUploadRegistry[selectionKey];
+            //     if (!activeModel) return;
+
+            //     // 1. Sync values over to the hidden tracking asset field
+            //     document.getElementById("hiddenUploadTypeField").value = activeModel.hiddenValue;
+                
+            //     // 2. Adjust informative labels on configuration interface
+            //     document.getElementById("bulkTemplateMetaDescription").textContent = activeModel.desc;
+            //     document.getElementById("bulkHeaderHelperIndicator").innerHTML = activeModel.headersText;
+
+            //     // 3. Build virtual download route blueprint data array path 
+            //     const downloadBtn = document.getElementById("bulkTemplateDownloadBtn");
+            //     downloadBtn.setAttribute("download", activeModel.filename);
+            //     downloadBtn.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(activeModel.csv));
+
+            //     // 4. Force file clear on category swapping to guarantee validation sequence resets
+            //     resetFileSelectionState();
+            // }
+
+            function switchUploadContext() {
+                const mainSelector = document.getElementById("bulkUploadSubSelector");
+                const subSelectorWrapper = document.getElementById("academicSubSectionWrapper");
+                const subSelector = document.getElementById("academicSubComponentSelector");
+                
+                let selectionKey = mainSelector.value;
+                
+                // 1. Dynamic Dropdown Structural Toggle & Key Merging Engine
+                if (selectionKey === "academic") {
+                    if (subSelectorWrapper) subSelectorWrapper.classList.remove("hidden");
+                    // Aggregate targets into safe mapping coordinates (e.g., "academic_ia1", "academic_see")
+                    selectionKey = `academic_${subSelector.value}`;
+                } else {
+                    if (subSelectorWrapper) subSelectorWrapper.classList.add("hidden");
+                }
+
+                // 2. Fetch structural rules configuration from your central registry dictionary
+                const activeModel = bulkUploadRegistry[selectionKey];
+                if (!activeModel) return;
+
+                // 3. Sync operational upload targets back to the active form payload boundaries
+                document.getElementById("hiddenUploadTypeField").value = activeModel.hiddenValue;
+                
+                // Handle the secondary target modifier tracking input parameter
+                let subTypeField = document.getElementById("hiddenUploadSubtypeField");
+                if (!subTypeField) {
+                    subTypeField = document.createElement("input");
+                    subTypeField.type = "hidden";
+                    subTypeField.id = "hiddenUploadSubtypeField";
+                    subTypeField.name = "upload_subtype";
+                    // Mount cleanly into your upload form matrix element parent anchor
+                    const targetForm = document.getElementById("hiddenUploadTypeField").form || document.querySelector("form");
+                    if (targetForm) targetForm.appendChild(subTypeField);
+                }
+                // Store empty strings for normal routes, store active target codes ("ia1", "see") for marks matrices
+                subTypeField.value = mainSelector.value === "academic" ? subSelector.value : "";
+
+                // 4. Adjust informative labels on configuration interface
+                document.getElementById("bulkTemplateMetaDescription").textContent = activeModel.desc;
+                document.getElementById("bulkHeaderHelperIndicator").innerHTML = activeModel.headersText;
+
+                // 5. Build virtual download route blueprint data array path 
+                const downloadBtn = document.getElementById("bulkTemplateDownloadBtn");
+                if (downloadBtn) {
+                    downloadBtn.setAttribute("download", activeModel.filename);
+                    downloadBtn.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(activeModel.csv));
+                }
+
+                // 6. Force file clear on category swapping to guarantee validation sequence resets
+                resetFileSelectionState();
+            }
+
+            function handleBulkFileSelectionState() {
+                const fileInput = document.getElementById("bulkCsvFileInputElement");
+                const labelIndicator = document.getElementById("bulkUploadLabelIndicator");
+                const iconIndicator = document.getElementById("bulkUploadIconIndicator");
+                const submitBtn = document.getElementById("bulkUploadSubmitButton");
+
+                if (fileInput.files && fileInput.files.length > 0) {
+                    const uploadedFileName = fileInput.files[0].name;
+                    
+                    // Mutate visually and activate submission path pipelines instantly
+                    iconIndicator.textContent = "✅";
+                    labelIndicator.innerHTML = `File Uploaded: <span class="text-emerald-600 underline font-mono font-bold">${uploadedFileName}</span>`;
+                    
+                    submitBtn.removeAttribute("disabled");
+                    submitBtn.className = "w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-colors transform active:scale-[0.99] cursor-pointer";
+                } else {
+                    resetFileSelectionState();
+                }
+            }
+
+            function resetFileSelectionState() {
+                const fileInput = document.getElementById("bulkCsvFileInputElement");
+                const labelIndicator = document.getElementById("bulkUploadLabelIndicator");
+                const iconIndicator = document.getElementById("bulkUploadIconIndicator");
+                const submitBtn = document.getElementById("bulkUploadSubmitButton");
+
+                if (fileInput) fileInput.value = "";
+                if (iconIndicator) iconIndicator.textContent = "📁";
+                if (labelIndicator) labelIndicator.textContent = "Drop or Browse Tabular Matrix (.csv)";
+                
+                if (submitBtn) {
+                    submitBtn.setAttribute("disabled", "true");
+                    submitBtn.className = "w-full py-3 bg-slate-300 text-slate-500 font-black text-xs rounded-xl shadow-md cursor-not-allowed transition-all";
+                }
+            }
+            
+            document.addEventListener("DOMContentLoaded", function() {
+                // FIX 1: Fixed function name target collision from switchTemplateContext -> switchUploadContext
+                switchUploadContext(); 
+
+                // FIX 2: Fixed search hook target logic. We bind the submit event handler onto the form element, not the dropdown selector.
+                const uploadForm = document.getElementById('bulkUploadSystemForm');
+                if (uploadForm) {
+                    uploadForm.addEventListener('submit', function(e) {
+                        e.preventDefault(); 
+
+                        const fileInput = document.getElementById("bulkCsvFileInputElement");
+                        if (!fileInput.files || fileInput.files.length === 0) return;
+
+                        const formData = new FormData(uploadForm);
+                        const xhr = new XMLHttpRequest();
+
+                        const progressContainer = document.getElementById('uploadProgressContainer');
+                        const statusText = document.getElementById('progressStatusText');
+                        const percentText = document.getElementById('progressPercentage');
+                        const barFill = document.getElementById('progressBarFill');
+                        const summaryBox = document.getElementById('uploadFinalSummary');
+                        const summaryText = document.getElementById('summaryMetricsText');
+                        const submitBtn = document.getElementById('bulkUploadSubmitButton');
+
+                        progressContainer.classList.remove('hidden');
+                        summaryBox.classList.add('hidden');
+                        barFill.style.width = '0%';
+                        percentText.innerText = '0%';
+                        barFill.className = "h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-150";
+                        statusText.className = "text-slate-700 font-bold text-xs";
+                        statusText.innerText = 'Streaming file packets to server ledger node...';
+                        
+                        submitBtn.setAttribute("disabled", "true");
+                        submitBtn.className = "w-full py-3 bg-slate-300 text-slate-500 font-black text-xs rounded-xl shadow-md cursor-not-allowed opacity-50";
+
+                        xhr.upload.addEventListener('progress', function(event) {
+                            if (event.lengthComputable) {
+                                const networkPercent = Math.round((event.loaded / event.total) * 100);
+                                barFill.style.width = networkPercent + '%';
+                                percentText.innerText = networkPercent + '%';
+                                
+                                if (networkPercent === 100) {
+                                    statusText.innerText = 'Compiling data structures & parsing ledger rows... Please wait.';
+                                }
+                            }
+                        });
+
+                        xhr.open('POST', "/admin/config/batch-import");
+
+                        // Locate your AJAX upload form handling inside templates/admin.html
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                const responseData = JSON.parse(xhr.responseText);
+                                
+                                barFill.style.width = '100%';
+                                percentText.innerText = '100%';
+                                statusText.className = "text-emerald-600 font-bold text-xs";
+                                statusText.innerText = '✅ Database entry sync complete.';
+                                
+                                summaryBox.classList.remove('hidden');
+                                summaryBox.className = "text-xs font-semibold p-3 border-l-4 border-emerald-500 bg-emerald-50 text-emerald-800 rounded-r-xl mt-3";
+                                
+                                // Dynamic fallback logic matching response JSON structures 
+                                const serverMessage = responseData.msg || "Matrix transaction synchronized successfully.";
+                                const metricsCount = (responseData.updated !== undefined) ? responseData.updated : 0;
+                                
+                                summaryText.innerHTML = `${serverMessage}<br><span class="font-black text-emerald-700 mt-1 block">➔ Rows updated: ${metricsCount}</span>`;
+                            } else {
+                                const errorData = JSON.parse(xhr.responseText);
+                                statusText.className = "text-rose-600 font-bold text-xs";
+                                statusText.innerText = '❌ Database Transaction Fault.';
+                                summaryBox.classList.remove('hidden');
+                                summaryBox.className = "text-xs font-semibold p-3 border-l-4 border-rose-500 bg-rose-50 text-rose-800 rounded-r-xl mt-3";
+                                summaryText.innerText = errorData.msg || 'An unknown server tracking engine fault occurred.';
+                            }
+                        };
+
+                        xhr.addEventListener('error', function() {
+                            statusText.className = "text-rose-600 font-bold text-xs";
+                            statusText.innerText = '❌ Network connection to parsing orchestrator node broken.';
+                            barFill.className = 'bg-rose-500 h-full rounded-full';
+                            reactivateSubmit();
+                        });
+
+                        function reactivateSubmit() {
+                            submitBtn.removeAttribute("disabled");
+                            submitBtn.className = "w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-colors cursor-pointer";
+                        }
+
+                        xhr.send(formData);
+                    });
+                }
+            }); 
+        </script>
+        {% endif %}
+
+        {% if request.query_params.get('action') == 'view_logs' and data.get('role') == 'superadmin' %}
+        <div class="space-y-6 animate-fadeIn">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Firewall Security Logs</h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Audit track operations context logs recorded across standard runtime environments</p>
+            </div>
+
+            <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 text-white font-bold text-[10px] uppercase tracking-wider font-mono">
+                                <th class="p-3.5">Timestamp</th>
+                                <th class="p-3.5">Event Class</th>
+                                <th class="p-3.5">Severity</th>
+                                <th class="p-3.5">Operational Details Trace</th>
+                                <th class="p-3.5">Vector Source IP</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700 font-semibold font-mono text-[11px]">
+                            {% for log in data.get('logs', []) %}
+                            <tr class="hover:bg-white transition-colors">
+                                <td class="p-3.5 text-slate-400 truncate max-w-[140px]">{{ log.timestamp }}</td>
+                                <td class="p-3.5 text-indigo-600 font-bold">{{ log.event_type }}</td>
+                                <td class="p-3.5">
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase 
+                                        {% if log.severity == 'CRITICAL' %} bg-rose-100 text-rose-700 border border-rose-200 
+                                        {% elif log.severity == 'WARNING' %} bg-amber-100 text-amber-700 border border-amber-200
+                                        {% else %} bg-slate-100 text-slate-600 border border-slate-200 {% endif %}">
+                                        {{ log.severity }}
+                                    </span>
+                                </td>
+                                <td class="p-3.5 text-slate-900 truncate max-w-xs" title="{{ log.details }}">{{ log.details }}</td>
+                                <td class="p-3.5 text-slate-500 font-medium">{{ log.ip_address }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-slate-400 font-medium bg-white font-sans">No security framework operations alerts logged within active audit windows.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if request.query_params.get('action') == 'term_shift' and data.get('role') == 'superadmin' %}
+        <div class="max-w-xl space-y-6 animate-fadeIn">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Execute Semester Academic Term Shift Migration</h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">⚠️ WARNING: Destructive system lifecycle routine. Shifts tracking logs.</p>
+            </div>
+
+            <div class="p-5 bg-rose-50 border border-rose-200 text-rose-900 rounded-2xl space-y-3">
+                <div class="flex gap-3">
+                    <span class="text-xl">🚨</span>
+                    <div class="space-y-1">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-rose-800">Critical Infrastructure Warning Sequence</h4>
+                        <p class="text-[11px] leading-relaxed font-medium text-rose-700">
+                            Advancing terms shifts all ungraduated profiles (+1 Term), calculates chronological years, and locks current records. Students finishing Term 8 will automatically transition to a NULL state to denote completion.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <form action="/admin/infrastructure/term-shift" method="POST" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Active Operating Term Name Target</label>
+                    <input type="text" name="new_term_title" required placeholder="Academic Year 2026-2027 (Odd)" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Type Security Confirmation Phrase</label>
+                    <p class="text-[11px] text-slate-400 font-medium mb-1">To authorize migration validation sequences, type exactly: <code class="font-mono font-bold text-slate-900 bg-slate-100 px-1 py-0.5 rounded select-all">EXECUTE GLOBAL OVERRIDE SHIFT</code></p>
+                    <input type="text" name="confirmation_passphrase" required placeholder="EXECUTE GLOBAL OVERRIDE SHIFT" class="w-full text-xs font-mono font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md transition-all transform active:scale-[0.99]">
+                    Authorize Global Term Shift Framework Reset ➔
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if request.query_params.get('action') == 'change_password' %}
+        <div class="max-w-xl space-y-6 animate-fadeIn">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Modify Security Credentials Matrix</h2>
+                {% if data.get('role') == 'superadmin' %}
+                <p class="text-xs font-medium text-emerald-600 mt-0.5">Superadmin Mode: Privileged to override passphrases across any network record domain layout.</p>
+                {% else %}
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Departmental Admin Mode: Target profiles must align with your assigned department context domain layout.</p>
+                {% endif %}
+            </div>
+
+            <form action="/admin/config/change-password" method="POST" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Target Account Email Address</label>
+                    <input type="email" name="target_email" required placeholder="user@university.edu" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Inject New Security Passphrase</label>
+                    <input type="password" name="new_password" required placeholder="••••••••••••" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md transition-all">
+                    Commit Password Override Transaction ➔
+                </button>
+            </form>
+        </div>
+        {% endif %}
+            
+    </main>
+</div>
+{% endblock %}

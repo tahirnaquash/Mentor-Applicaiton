@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Counselor Vault - Secure Firewall Shield Access{% endblock %}
+
+{% block content %}
+<div class="min-h-[65vh] flex items-center justify-center relative py-12 animate-fade-in">
+    <div class="w-full max-w-md bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl p-8 shadow-xl shadow-slate-100/50 space-y-6 relative z-10 hover:border-slate-300 transition-all duration-300">
+
+        
+        <div class="text-center space-y-1.5">
+            <span class="px-2.5 py-0.5 bg-amber-600 text-white font-black text-[9px] tracking-widest uppercase rounded-md">
+                Encrypted Privacy Core
+            </span>
+            <h2 class="text-xl font-black text-slate-900 tracking-tight mt-2 uppercase">Counselor Vault Entry</h2>
+            <p class="text-xs font-semibold text-slate-400">Strict end-to-end data security constraints active</p>
+        </div>
+        
+        <form action="/auth/login/counselor" method="POST" class="space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide block">Encrypted Advisor ID Email</label>
+                <input type="email" name="username" required placeholder="advisor@secure.university.edu" class="w-full text-xs font-bold px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide block">Shield Signature Keys</label>
+                <input type="password" name="password" required placeholder="••••••••••••" class="w-full text-xs font-bold px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-amber-600 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-[0.99] hover:bg-amber-700 uppercase tracking-wider">
+                Decrypt Advisor Vault Session 🔒
+            </button>
+        </form>
+        
+        <div class="text-center pt-2">
+            <a href="/" class="text-[10px] font-black text-slate-400 hover:text-amber-600 transition-colors uppercase tracking-wider font-mono">
+                ← Terminate Security Connection
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

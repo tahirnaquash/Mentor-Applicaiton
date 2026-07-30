@@ -1,0 +1,1346 @@
+{% extends "base.html" %}
+{% block title %}Admin Master Orchestrator Control Console{% endblock %}
+
+{% block nav_action %}
+<div class="flex items-center gap-4">
+    {% if data.get('role') == 'superadmin' %}
+        <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-md font-black text-[10px] tracking-wider uppercase font-mono">
+            🌐 GLOBAL SUPERUSER
+        </span>
+    {% else %}
+        <span class="px-2.5 py-1 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-md font-black text-[10px] tracking-wider uppercase font-mono">
+            🏢 DEPT: {{ data.get('department', 'OPERATIONS') }}
+        </span>
+    {% endif %}
+
+    <a href="/auth/logout" class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs rounded-xl transition-colors shadow-xs group">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-rose-600 transition-transform group-hover:translate-x-0.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
+        <span>Logout</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 min-h-[80vh] items-stretch -mt-4">
+    
+    <aside class="w-full lg:w-72 bg-slate-900 text-slate-300 rounded-3xl p-6 flex flex-col justify-between border border-slate-800 shadow-xl shrink-0">
+        <div class="space-y-6">
+            
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Workspace Maps</span>
+                
+                <a href="/dashboard/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if not request.query_params.get('action') %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>📊</span> Overview Ledger
+                </a>
+                
+                <a href="?action=create_user" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'create_user' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>👤</span> Provision Accounts
+                </a>
+
+                <a href="?action=assign_mentor" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'assign_mentor' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>🛡️</span> Role Enforcement
+                </a>
+
+                <a href="?action=upload_csv" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'upload_csv' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>📁</span> Batch CSV Imports
+                </a>
+                <div class="pt-2 mt-2 border-t border-slate-800">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-1">Security Matrix</span>
+                <a href="?action=change_password" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'change_password' %}
+                        text-white bg-rose-600 shadow-sm shadow-rose-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>🔑</span> Change Password Matrix
+                </a>
+                </div>
+            </div>
+
+            <div class="space-y-1 pt-2">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Analytics Desk</span>
+                
+                <a href="/admin/export/risk-csv" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900/30 transition-all">
+                    <span class="flex items-center gap-3"><span>📈</span> Live Student Catalog</span>
+                    <span class="text-[9px] bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded font-mono">CSV</span>
+                </a>
+            </div>
+
+            {% if data.get('role') == 'superadmin' %}
+            <div class="space-y-1 pt-2">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Global Control Keys</span>
+                
+                <a href="?action=view_logs" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'view_logs' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>🧱</span> Firewall Security Logs
+                </a>
+                
+                <a href="?action=term_shift" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all 
+                    {% if request.query_params.get('action') == 'term_shift' %}
+                        text-white bg-indigo-600 shadow-sm shadow-indigo-600/10
+                    {% else %}
+                        text-slate-400 hover:bg-slate-800 hover:text-white
+                    {% endif %}">
+                    <span>⏳</span> Semester Term Shift
+                </a>
+            </div>
+            {% endif %}
+            
+        </div>
+        
+        <div class="pt-4 border-t border-slate-800 text-[10px] text-slate-600 font-bold uppercase tracking-wider text-center font-mono select-none">
+            Node Environment: Secure
+        </div>
+    </aside>
+
+    <main class="flex-1 bg-white border border-slate-200 rounded-3xl p-8 shadow-xs overflow-y-auto">
+        
+        {% if msg %}
+        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center gap-3 text-xs font-bold">
+            <span>✅</span> {{ msg }}
+        </div>
+        {% endif %}
+
+        {% if err %}
+        <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl flex items-center gap-3 text-xs font-bold">
+            <span>⚠️</span> {{ err }}
+        </div>
+        {% endif %}
+
+        {% if not request.query_params.get('action') %}
+        <div class="space-y-10">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">
+                    {% if data.get('role') == 'superadmin' %}Global Infrastructure Overview Ledger{% else %}{{ data.get('department') }} Department Control Center{% endif %}
+                </h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Real-time control data metrics across authorized system nodes</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs space-y-2">
+                    <span class="text-[10px] font-black text-indigo-600 uppercase tracking-wider block">Total Managed Cohort Students</span>
+                    <span class="text-4xl font-black text-slate-900 font-mono block">{{ data.get('total_students', 0) }}</span>
+                </div>
+                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs space-y-2">
+                    <span class="text-[10px] font-black text-emerald-600 uppercase tracking-wider block">Verified Academic Mentors</span>
+                    <span class="text-4xl font-black text-slate-900 font-mono block">{{ data.get('total_mentors', 0) }}</span>
+                </div>
+                <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs space-y-2">
+                    <span class="text-[10px] font-black text-amber-600 uppercase tracking-wider block">Authorized Counseling Staff</span>
+                    <span class="text-4xl font-black text-slate-900 font-mono block">{{ data.get('total_counselors', 0) }}</span>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-6">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Critical Risk Alert Analysis Framework</h3>
+                    <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Distribution tracking students triggering low attendance or academic warning indicators</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-3">
+                        {% for item in data.get('chart_analytics', []) %}
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-slate-700">
+                                <span>🏢 {{ item.department }}</span>
+                                <span class="font-mono text-rose-600">{{ item.count }} Critical Cases</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                <div class="bg-gradient-to-r from-rose-500 to-amber-500 h-3 rounded-full transition-all w-[{{ item.bar_width|default(0) }}%]"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center p-6 text-xs text-slate-400 font-bold">No students are currently flagged with critical status anomalies inside this workspace scope.</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl p-4 bg-white space-y-3">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">System Diagnostics Flag</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🛡️</span>
+                            <p class="text-xs font-semibold text-slate-600 leading-relaxed">
+                                Columns display metrics flagging risk parameters. System constraints request an immediate evaluation on drops under <strong class="text-slate-900 font-bold">75.0% Attendance</strong> or <strong class="text-slate-900 font-bold">6.5 Cumulative CGPA</strong> values.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Counseling Services Vault Roster Referral Ledger</h3>
+                    <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Active records flagged or submitted for monitoring vectors</p>
+                </div>
+
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 shadow-2xs">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-900 text-white font-bold text-[10px] uppercase tracking-wider font-mono">
+                                    <th class="p-3.5">Student Entity Identity</th>
+                                    <th class="p-3.5">Registry ID Code</th>
+                                    <th class="p-3.5">Department</th>
+                                    <th class="p-3.5">CGPA</th>
+                                    <th class="p-3.5">Attendance</th>
+                                    <th class="p-3.5 text-right">Escalation Threat Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700 font-semibold bg-white">
+                                {% for record in data.get('counseling_roster', []) %}
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="p-3.5 text-slate-900 font-bold">{{ record.name }}</td>
+                                    <td class="p-3.5 font-mono text-[11px] text-slate-500">{{ record.usn_or_id }}</td>
+                                    <td class="p-3.5 text-slate-600 font-medium">{{ record.department or 'N/A' }}</td>
+                                    <td class="p-3.5 font-mono text-slate-900">{{ record.cgpa }}</td>
+                                    <td class="p-3.5 font-mono text-slate-900">{{ record.attendance }}</td>
+                                    <td class="p-3.5 text-right">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase font-mono border
+                                            {% if record.color == 'rose' %} bg-rose-50 border-rose-200 text-rose-700
+                                            {% elif record.color == 'amber' %} bg-amber-50 border-amber-200 text-amber-700
+                                            {% else %} bg-teal-50 border-teal-200 text-teal-700 {% endif %}">
+                                            {{ record.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="p-8 text-center text-slate-400 font-medium bg-slate-50">No active records require counselor visibility inside this domain node context.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if request.query_params.get('action') == 'create_user' %}
+        <div class="max-w-xl space-y-10">
+            <div class="space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight">Provision Identity Credentials</h2>
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">Inject verified system accounts into the decentralized data structures</p>
+                </div>
+
+                <form action="/admin/config/create-user" method="POST" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">System Display Title Name</label>
+                            <input type="text" name="display_name" required placeholder="Dr. Jennifer Sterling" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Unique USN / Employee ID</label>
+                            <input type="text" name="usn_or_id" required placeholder="EMP-2026-9482" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Institutional Network Mail Address</label>
+                        <input type="email" name="email" required placeholder="j.sterling@university.edu" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Access Verification Passphrase</label>
+                        <input type="password" name="password" required placeholder="••••••••••••" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Architectural Hierarchy Role</label>
+                            <select name="role" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none cursor-pointer">
+                                <option value="student">Student Ledger Node</option>
+                                <option value="mentor">Faculty Mentor Node</option>
+                                <option value="counselor">Encrypted Counselor Vault Node</option>
+                                {% if data.get('role') == 'superadmin' %}
+                                <option value="admin">Departmental Admin Operator</option>
+                                <option value="superadmin">Global Superadmin Node</option>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Department Multi-Tenant Domain</label>
+                            {% if data.get('role') == 'superadmin' %}
+                            <select name="department" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none cursor-pointer">
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Science">Information Science</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Mechanical">Mechanical</option>
+                                <option value="Global">Global Operations</option>
+                            </select>
+                            {% else %}
+                            <input type="text" name="department" readonly value="{{ data.get('department') }}" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl select-none outline-none">
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-indigo-600 text-white font-black text-xs rounded-xl shadow-md hover:bg-indigo-700 transition-all transform active:scale-[0.99] mt-2">
+                        Commit Identity Record Matrix ➔
+                    </button>
+                </form>
+            </div>
+
+            <div class="pt-8 border-t border-slate-200 space-y-6">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Bulk Account Provisioning Matrix</h3>
+                    <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Stream multiple structural configurations directly into authentication directories using a spreadsheet file</p>
+                </div>
+
+                <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="space-y-0.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Target User Matrix Reference Schema</label>
+                            <p class="text-[11px] text-slate-300 font-medium">Select a structural account blueprint type to download its pre-formatted template data table.</p>
+                        </div>
+                        <select id="csvTemplateSelector" onchange="switchTemplateContext()" class="text-xs font-bold px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none cursor-pointer">
+                            <option value="student">Student Node Blueprint</option>
+                            <option value="mentor">Faculty Mentor Node Blueprint</option>
+                            {% if data.get('role') == 'superadmin' %}
+                            <option value="counselor">Counselor Vault Node Blueprint</option>
+                            <option value="admin">Departmental Admin Operator Blueprint</option>
+                            <option value="superadmin">Global Superadmin Node Blueprint</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-4 text-xs">
+                        <div id="templateMetaDescription" class="text-[11px] font-semibold text-slate-400 leading-relaxed max-w-md">
+                            </div>
+                        <a id="templateDownloadBtn" href="#" download="student_import_template.csv" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[11px] rounded-xl transition-all shadow-md active:scale-95">
+                            <span>📥</span> Download Schema Template
+                        </a>
+                    </div>
+                </div>
+                <form id="csvUploadForm" action="/admin/config/upload-csv" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <input type="hidden" id="activeUploadType" name="upload_type" value="student">
+                    
+                    <div class="p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-center space-y-2 relative hover:bg-slate-100/50 transition-colors group">
+                        <span id="uploadIcon" class="text-3xl block transition-transform group-hover:scale-110">📁</span>
+                        <span id="uploadStatusText" class="text-xs font-bold text-slate-700 block">Select Tabular Roster Matrix (.csv)</span>
+                        <span class="text-[10px] text-slate-400 font-medium block">File headers requirement map: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">display_name, usn_or_id, email, password, role, department</code></span>
+                        <input type="file" id="csvFileInput" name="file" accept=".csv" required onchange="handleFileSelectionState()" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                    </div>
+
+                    <div id="uploadProgressContainer" class="hidden p-5 border border-slate-200 rounded-2xl bg-slate-50 space-y-3">
+                        <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-700">
+                            <span id="progressStatusText">Staging file data stream elements...</span>
+                            <span id="progressPercentage" class="font-mono bg-slate-200 px-2 py-0.5 rounded text-slate-800">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                            <div id="progressBarFill" class="bg-indigo-600 h-2.5 w-0 rounded-full transition-all duration-150 ease-out"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-500 font-medium">
+                        <span class="font-bold text-slate-700 uppercase tracking-wide block text-[10px] mb-1">Privilege Boundary Enforcement Indicators:</span>
+                        <p class="text-slate-600">• Required system columns structure: <code class="font-mono bg-slate-200 text-slate-700 px-0.5 rounded">display_name,usn_or_id,email,password,role,department</code></p>
+                        {% if data.get('role') != 'superadmin' %}
+                        <p class="text-amber-600 font-bold">• Department Constraint Notice: Your accounts will be generated strictly under the <span class="underline">{{ data.get('department') }}</span> department matrix layer.</p>
+                        <p class="text-rose-600 font-semibold">• Escalation Interception Gate: Any rows configuring role values other than <code class="font-mono bg-rose-50 text-rose-700 px-0.5 rounded">student</code> or <code class="font-mono bg-rose-50 text-rose-700 px-0.5 rounded">mentor</code> will be caught by security firewalls and skipped.</p>
+                        {% else %}
+                        <p class="text-emerald-600 font-semibold">• Superadmin Operational Scope: Unrestricted execution rights are currently authorized on this browser instance.</p>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" id="batchSubmitBtn" disabled class="w-full py-3 bg-slate-400 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-not-allowed opacity-50">
+                        Execute Batch User Import Execution ➔
+                    </button>
+                </form>   
+            </div>
+        </div>
+
+        {% elif request.query_params.get('action') == 'assign_mentor' %}
+        <div class="space-y-10">
+            <div class="max-w-xl space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight">Enforce Faculty Linkage</h2>
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">Map downstream student profiles to parent advisory vectors tracking models</p>
+                </div>
+
+                <form action="/admin/relationships/map" method="POST" class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Select Cohort Student</label>
+                        <select name="student_id" required class="w-full text-xs font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                            {% for s in data.all_students_list %}
+                                <option value="{{ s.id }}">{{ s.display_name }} ({{ s.usn_or_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <input type="checkbox" id="deallocateCheck" name="deallocate" value="True" onchange="toggleMentorSelectState()" class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                        <label for="deallocateCheck" class="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                            Deallocate Current Mentor (Reset to Unassigned)
+                        </label>
+                    </div>
+
+                    <div id="mentorSelectContainer" class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Target Faculty Mentor Advisor</label>
+                        <select name="mentor_id" id="mentorDropdown" class="w-full text-xs font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                            {% for m in data.all_mentors_list %}
+                                <option value="{{ m.id }}">{{ m.display_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-all">
+                        Commit Assignment Change Transaction ➔
+                    </button>
+                </form>
+
+                <script>
+                function toggleMentorSelectState() {
+                    const isChecked = document.getElementById("deallocateCheck").checked;
+                    const container = document.getElementById("mentorSelectContainer");
+                    const dropdown = document.getElementById("mentorDropdown");
+                    
+                    if (isChecked) {
+                        container.style.opacity = "0.4";
+                        dropdown.removeAttribute("required");
+                        dropdown.setAttribute("disabled", "true");
+                    } else {
+                        container.style.opacity = "1";
+                        dropdown.setAttribute("required", "true");
+                        dropdown.removeAttribute("disabled");
+                    }
+                }
+                </script>
+            </div>
+
+            <div class="space-y-4">
+                <div class="border-b border-slate-100 pb-2">
+                    <h3 class="text-base font-black text-slate-900 tracking-tight">Active Advising Matrix Ledger</h3>
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">Comprehensive grid of all managed students and structural mappings</p>
+                </div>
+
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 shadow-2xs">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-900 text-white font-bold text-[10px] uppercase tracking-wider font-mono">
+                                    <th class="p-3.5">Student Name</th>
+                                    <th class="p-3.5">Student USN / ID</th>
+                                    <th class="p-3.5">Department</th>
+                                    <th class="p-3.5">Assigned Faculty Advisor</th>
+                                    <th class="p-3.5">Advisor ID</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700 font-semibold font-sans">
+                                {% for student in data.get('all_students_list', []) %}
+                                <tr class="hover:bg-white transition-colors">
+                                    <td class="p-3.5 text-slate-900 font-bold">{{ student.display_name }}</td>
+                                    <td class="p-3.5 font-mono text-[11px] text-slate-500">{{ student.usn_or_id }}</td>
+                                    <td class="p-3.5 text-slate-600">{{ student.department or 'N/A' }}</td>
+                                    <td class="p-3.5">
+                                        {% if student.mentor_name %}
+                                            <span class="inline-flex items-center gap-1.5 text-indigo-700 font-bold">
+                                                🧑‍🏫 {{ student.mentor_name }}
+                                            </span>
+                                        {% else %}
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-200/60 font-mono">
+                                                ⚠️ UNASSIGNED
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-3.5 font-mono text-[11px] text-slate-400">
+                                        {{ student.mentor_id_code or '--' }}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-slate-400 font-medium">No student profile records found in the system ledger index.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif request.query_params.get('action') == 'upload_csv' %}
+        <div class="max-w-xl space-y-6 animate-fadeIn">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Bulk Account Provisioning Matrix</h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Stream multiple structural configurations directly into authentication directories using a spreadsheet file.</p>
+            </div>
+
+            <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="space-y-0.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Upload Category Matrix Target</label>
+                        <p class="text-[11px] text-slate-300 font-medium">Select a structural category sub-section to fetch its blueprint.</p>
+                    </div>
+                    <select id="bulkUploadSubSelector" onchange="switchUploadContext()" class="text-xs font-bold px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none cursor-pointer">
+                        <option value="student_data">1. Student Data Entry</option>
+                        <option value="academic">2. Student IA & Attendance Update</option>
+                        <option value="mentor_data">3. Mentor Data Entry</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-4 text-xs">
+                    <div id="bulkTemplateMetaDescription" class="text-[11px] font-semibold text-slate-400 leading-relaxed max-w-sm">
+                        </div>
+                    <a id="bulkTemplateDownloadBtn" href="#" download="template.csv" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[11px] rounded-xl transition-all shadow-md active:scale-95">
+                        <span>📥</span> Download Template
+                    </a>
+                </div>
+            </div>
+
+            <form id="bulkUploadForm" action="/admin/users/upload_csv" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" name="upload_type" id="hiddenUploadTypeField" value="student_data">
+                
+                <div class="p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-center space-y-2 relative hover:bg-slate-100/50 transition-colors group">
+                    <span id="bulkUploadIconIndicator" class="text-3xl block transition-transform group-hover:scale-110">📁</span>
+                    <span id="bulkUploadLabelIndicator" class="text-xs font-bold text-slate-700 block">Drop or Browse Tabular Matrix (.csv)</span>
+                    <span id="bulkHeaderHelperIndicator" class="text-[10px] text-slate-400 font-medium block"></span>
+                    
+                    <input type="file" name="file" id="bulkCsvFileInputElement" accept=".csv" required 
+                           onchange="handleBulkFileSelectionState()" 
+                           class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                </div>
+
+                <div id="uploadProgressContainer" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span id="progressStatusText" style="font-weight: 700; font-size: 13px; color: #334155;">Staging CSV elements...</span>
+                        <span id="progressPercentage" style="font-weight: 800; font-size: 13px; color: #4f46e5;">0%</span>
+                    </div>
+                    <div style="width: 100%; background-color: #e2e8f0; height: 8px; border-radius: 9999px; overflow: hidden;">
+                        <div id="progressBarFill" style="width: 0%; height: 100%; background-color: #4f46e5; transition: width 0.15s ease-out;"></div>
+                    </div>
+                    <div id="uploadFinalSummary" style="display: none; margin-top: 12px; font-size: 12px; color: #065f46; padding: 12px; border-left: 4px solid #10b981; background-color: #ecfdf5; border-radius: 4px;">
+                        <strong>Import Matrix Status:</strong> <span id="summaryMetricsText"></span>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-500 font-medium">
+                    <span class="font-bold text-slate-700 uppercase tracking-wide block text-[10px] mb-1">Privilege Boundary Indicators:</span>
+                    {% if data.get('role') != 'superadmin' %}
+                    <p class="text-amber-600 font-bold">• Scope Boundary: Generated profiles are restricted to the <span class="underline">{{ data.get('department') }}</span> domain layout context.</p>
+                    <p class="text-rose-600 font-semibold">• Security Firewall Rule: Multi-tenant protection routines automatically skip structural row evaluations attempting privilege elevations.</p>
+                    {% else %}
+                    <p class="text-emerald-600 font-semibold">• Superadmin Unrestricted Workspace: Full administrative capabilities are active across all regional departments.</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" id="bulkUploadSubmitButton" disabled 
+                        class="w-full py-3 bg-slate-300 text-slate-500 font-black text-xs rounded-xl shadow-md cursor-not-allowed transition-all">
+                    Execute Batch Import Routine ➔
+                </button>
+            </form>
+        </div>
+
+        <script>
+            document.getElementById('bulkUploadForm').addEventListener('submit', function(e) {
+                e.preventDefault(); // HALT STANDARD FULL REFRESH INTERCEPTION
+
+                const form = e.target;
+                const formData = new FormData(form);
+
+                const progressContainer = document.getElementById('uploadProgressContainer');
+                const statusText = document.getElementById('progressStatusText');
+                const percentText = document.getElementById('progressPercentage');
+                const barFill = document.getElementById('progressBarFill');
+                const summaryBox = document.getElementById('uploadFinalSummary');
+                const summaryText = document.getElementById('summaryMetricsText');
+                const submitBtn = document.getElementById('bulkUploadSubmitButton');
+
+                // 1. Reset component configuration matrices
+                progressContainer.style.display = 'block';
+                summaryBox.style.display = 'none';
+                barFill.style.width = '0%';
+                percentText.innerText = '0%';
+                barFill.style.backgroundColor = '#4f46e5';
+                statusText.innerText = 'Analyzing local CSV row mapping vectors...';
+                submitBtn.setAttribute("disabled", "true");
+                submitBtn.style.opacity = "0.5";
+
+                // 2. Open Native Asynchronous Native Upload Channel
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.lengthComputable) {
+                        // Progress tracks payload transit pipeline stream across network arrays (0% - 75%)
+                        const networkPercent = Math.round((event.loaded / event.total) * 75);
+                        barFill.style.width = networkPercent + '%';
+                        percentText.innerText = networkPercent + '%';
+                        statusText.innerText = 'Streaming file packets to server ledger node...';
+                    }
+                });
+
+                xhr.addEventListener('load', function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+
+                            // 3. Drive instantly to 100% on complete commit
+                            barFill.style.width = '100%';
+                            percentText.innerText = '100%';
+                            statusText.innerText = 'Database entry synchronization complete.';
+
+                            // 4. Expose metrics and structural entries updated tally counter array 
+                            summaryBox.style.display = 'block';
+                            
+                            // Supports fallback formatting for variable API returns (msg/message/updated keys)
+                            const returnMessage = result.msg || result.message || "Batch collection processed successfully.";
+                            const totalRowsModified = (result.updated !== undefined) ? result.updated : "Check logs for totals";
+                            
+                            summaryText.innerHTML = `${returnMessage}<br><span style="font-weight:700; color:#047857; margin-top:4px; display:block;">➔ Number of entries updated: ${totalRowsModified}</span>`;
+                            
+                        } catch (err) {
+                            statusText.innerText = 'Error parsing server data verification stream responses.';
+                            barFill.style.backgroundColor = '#ef4444';
+                        }
+                    } else {
+                        statusText.innerText = `Server error code execution fault: ${xhr.status}`;
+                        barFill.style.backgroundColor = '#ef4444';
+                    }
+                    submitBtn.removeAttribute("disabled");
+                    submitBtn.style.opacity = "1";
+                });
+
+                xhr.addEventListener('error', function() {
+                    statusText.innerText = 'Network connection to parsing orchestrator node broken.';
+                    barFill.style.backgroundColor = '#ef4444';
+                    submitBtn.removeAttribute("disabled");
+                    submitBtn.style.opacity = "1";
+                });
+
+                xhr.open('POST', form.action);
+                xhr.send(formData);
+            });
+        </script>
+
+        <script>
+                    const activeAdminDept = "{{ data.get('department', 'Computer Science') }}";
+
+                    const templateDatabase = {
+                        student: {
+                            filename: "student_import_template.csv",
+                            desc: "Used for batch provisioning undergraduate/graduate student nodes inside your specific department.",
+                            csv: `display_name,usn_or_id,email,password,role,department\n"Alice Smith","1MS23CS001","alice.smith@university.edu","SecurePass123#","student","${activeAdminDept}"\n"Bob Jones","1MS23IS042","bob.jones@university.edu","ValidTempPass99!","student","${activeAdminDept}"`
+                        },
+                        mentor: {
+                            filename: "faculty_mentor_template.csv",
+                            desc: "Used for establishing teaching professors and advisory faculty node headers linked to your department.",
+                            csv: `display_name,usn_or_id,email,password,role,department\n"Dr. Jennifer Sterling","EMP-2026-9482","j.sterling@university.edu","ProfShield2026$","mentor","${activeAdminDept}"\n"Prof. Alan Turing","EMP-2026-1104","a.turing@university.edu","EnigmaDecoded88*","mentor","${activeAdminDept}"`
+                        },
+                        counselor: {
+                            filename: "counselor_vault_template.csv",
+                            desc: "Configures accounts for counselor wellness service monitors.",
+                            csv: "display_name,usn_or_id,email,password,role,department\n\"Sarah Jenkins\",\"CNS-2026-0511\",\"s.jenkins@university.edu\",\"VaultGuardian7!\",\"counselor\",\"Global Operations\""
+                        },
+                        admin: {
+                            filename: "department_admin_template.csv",
+                            desc: "⚠️ REQUIRES GLOBAL SUPERUSER PRIVILEGES. Sets up regional tenant standard administrative context blocks.",
+                            csv: "display_name,usn_or_id,email,password,role,department\n\"Dean Henderson\",\"ADM-CS-01\",\"cs.dean@university.edu\",\"CSAdminControl#1\",\"admin\",\"Computer Science\""
+                        },
+                        superadmin: {
+                            filename: "global_superadmin_template.csv",
+                            desc: "⚠️ CRITICAL SYSTEM LEVEL CLEARANCE. Injects root infrastructure operators.",
+                            csv: "display_name,usn_or_id,email,password,role,department\n\"Root Orchestrator\",\"SUP-001\",\"root.admin@university.edu\",\"GlobalMatrixOverride2026!\",\"superadmin\",\"Global Operations\""
+                        }
+                    };
+
+                    function switchTemplateContext() {
+                        const selector = document.getElementById("csvTemplateSelector");
+                        const downloadBtn = document.getElementById("templateDownloadBtn");
+                        const descContainer = document.getElementById("templateMetaDescription");
+                        const hiddenInput = document.getElementById("activeUploadType");
+                        
+                        if (!selector || !templateDatabase[selector.value]) return;
+                        
+                        const activeContext = templateDatabase[selector.value];
+                        descContainer.textContent = activeContext.desc;
+                        
+                        if (hiddenInput) {
+                            hiddenInput.value = selector.value;
+                        }
+                        
+                        downloadBtn.setAttribute("download", activeContext.filename);
+                        downloadBtn.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(activeContext.csv));
+                    }
+                   
+                    function handleFileSelectionState() {
+                        const fileInput = document.getElementById("csvFileInput");
+                        const statusText = document.getElementById("uploadStatusText");
+                        const iconContainer = document.getElementById("uploadIcon");
+                        const submitBtn = document.getElementById("batchSubmitBtn");
+
+                        if (fileInput.files && fileInput.files.length > 0) {
+                            const uploadedFilename = fileInput.files[0].name;
+                            
+                            statusText.innerHTML = `File Selected: <span class="text-emerald-600 font-mono underline">${uploadedFilename}</span>`;
+                            iconContainer.textContent = "✅";
+                            
+                            submitBtn.removeAttribute("disabled");
+                            submitBtn.className = "w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-colors transform active:scale-[0.99] cursor-pointer opacity-100";
+                        } else {
+                            statusText.textContent = "Select Tabular Roster Matrix (.csv)";
+                            iconContainer.textContent = "📁";
+                            submitBtn.setAttribute("disabled", "true");
+                            submitBtn.className = "w-full py-3 bg-slate-400 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-not-allowed opacity-50";
+                        }
+                    }
+
+                    document.addEventListener("DOMContentLoaded", function() {
+                        switchTemplateContext();
+
+                        const csvUploadForm = document.getElementById("csvUploadForm");
+                        if (!csvUploadForm) return;
+
+                        csvUploadForm.addEventListener("submit", function(event) {
+                            event.preventDefault(); 
+
+                            const fileInput = document.getElementById("csvFileInput");
+                            if (!fileInput || !fileInput.files || fileInput.files.length === 0) return;
+
+                            const selectedFile = fileInput.files[0];
+                            const formData = new FormData(csvUploadForm);
+                            const xhr = new XMLHttpRequest();
+
+                            // Safely query UI elements mapped exactly to DOM IDs
+                            const progressContainer = document.getElementById("uploadProgressContainer");
+                            const progressBar = document.getElementById("progressBarFill");
+                            const progressPercent = document.getElementById("progressPercentage");
+                            const progressStatusText = document.getElementById("progressStatusText");
+                            const submitBtn = document.getElementById("batchSubmitBtn");
+
+                            // Reveal progress framework context layout
+                            if (progressContainer) {
+                                progressContainer.classList.remove("hidden");
+                            }
+                            if (submitBtn) {
+                                submitBtn.setAttribute("disabled", "true");
+                                submitBtn.style.opacity = "0.5";
+                            }
+
+                            let currentVisualPercent = 0;
+                            let incrementalInterval = null;
+                            let targetServerReached = false;
+                            let finalResponsePayload = null;
+
+                            // Line counting row estimation algorithm to pace iteration mechanics
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const rowsCount = Math.max(e.target.result.split("\n").length - 1, 1);
+                                const dynamicStepTime = Math.max(Math.min((rowsCount * 100) / 95, 75), 15);
+
+                                incrementalInterval = setInterval(() => {
+                                    if (currentVisualPercent < 95) {
+                                        currentVisualPercent += 1;
+                                        if (progressBar) progressBar.style.width = currentVisualPercent + "%";
+                                        if (progressPercent) progressPercent.textContent = currentVisualPercent + "%";
+                                        if (progressStatusText) {
+                                            progressStatusText.innerHTML = `⚙️ Processing entries: writing transaction records... (${currentVisualPercent}%)`;
+                                        }
+                                    } else {
+                                        clearInterval(incrementalInterval);
+                                        if (progressStatusText) {
+                                            progressStatusText.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Verification hold: committing changes to database...`;
+                                        }
+                                        if (targetServerReached) {
+                                            completeUploadWorkflow();
+                                        }
+                                    }
+                                }, dynamicStepTime);
+                            };
+                            reader.readAsText(selectedFile);
+
+                            function completeUploadWorkflow() {
+                                if (incrementalInterval) clearInterval(incrementalInterval);
+                                
+                                try {
+                                    // Intercept redirects sent as HTML instead of JSON payloads
+                                    if (finalResponsePayload.trim().startsWith("<!DOCTYPE html>") || finalResponsePayload.includes("login")) {
+                                        triggerFailureWorkflow("Authentication Timeout. Please refresh the control console.");
+                                        setTimeout(() => { window.location.reload(); }, 2000);
+                                        return;
+                                    }
+
+                                    const res = JSON.parse(finalResponsePayload);
+                                    
+                                    if (xhr.status === 200 && (res.success || !res.detail)) {
+                                        const displayMsg = res.message || "Batch database provisions committed successfully!";
+                                        
+                                        if (progressBar) {
+                                            progressBar.style.width = "100%";
+                                            progressBar.style.backgroundColor = "#10b981"; // Emerald-500
+                                        }
+                                        if (progressPercent) progressPercent.textContent = "100%";
+                                        if (progressStatusText) {
+                                            progressStatusText.innerHTML = `✅ <span class="text-emerald-600 font-bold">${displayMsg}</span>`;
+                                        }
+                                        
+                                        setTimeout(() => {
+                                            window.location.href = "/dashboard/admin?action=create_user&msg=" + encodeURIComponent(displayMsg);
+                                        }, 1500);
+                                    } else {
+                                        triggerFailureWorkflow(res.message || "File formatting processing exception structural failure.");
+                                    }
+                                } catch(err) {
+                                    triggerFailureWorkflow("Parser interface synchronization drop exception occurred.");
+                                }
+                            }
+
+                            function triggerFailureWorkflow(errorText) {
+                                if (incrementalInterval) clearInterval(incrementalInterval);
+                                if (progressBar) {
+                                    progressBar.style.width = "100%";
+                                    progressBar.style.backgroundColor = "#ef4444"; // Rose-500
+                                }
+                                if (progressPercent) progressPercent.textContent = "Error";
+                                if (progressStatusText) {
+                                    progressStatusText.innerHTML = `❌ <span class="text-rose-600 font-bold">${errorText}</span>`;
+                                }
+                                if (submitBtn) {
+                                    submitBtn.removeAttribute("disabled");
+                                    submitBtn.style.opacity = "1";
+                                }
+                            }
+
+                            xhr.onreadystatechange = function() {
+                                if (xhr.readyState === XMLHttpRequest.DONE) {
+                                    targetServerReached = true;
+                                    finalResponsePayload = xhr.responseText;
+                                    
+                                    if (currentVisualPercent >= 95 || xhr.status !== 200) {
+                                        completeUploadWorkflow();
+                                    }
+                                }
+                            };
+
+                            xhr.open("POST", csvUploadForm.getAttribute("action"), true);
+                            
+                            // CRITICAL FIX: Retain and bind active credential cookie data onto stream pipelines
+                            xhr.withCredentials = true;
+                            
+                            xhr.send(formData);
+                        });
+                    });
+                </script>
+
+        {% elif request.query_params.get('action') == 'batch-import' %}
+        <div class="max-w-xl space-y-6 animate-fadeIn">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Bulk Account Provisioning Matrix</h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Stream multiple structural configurations directly into authentication directories using a spreadsheet file.</p>
+            </div>
+
+            <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="space-y-0.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Upload Category Matrix Target</label>
+                        <p class="text-[11px] text-slate-300 font-medium">Select a structural category sub-section to fetch its blueprint.</p>
+                    </div>
+                    <select id="bulkUploadSubSelector" onchange="switchUploadContext()" class="text-xs font-bold px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none cursor-pointer">
+                        <option value="student_data">1. Student Data Entry</option>
+                        <option value="academic">2. Student IA & Attendance Update</option>
+                        <option value="mentor_data">3. Mentor Data Entry</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-4 text-xs">
+                    <div id="bulkTemplateMetaDescription" class="text-[11px] font-semibold text-slate-400 leading-relaxed max-w-sm">
+                        </div>
+                    <a id="bulkTemplateDownloadBtn" href="#" download="template.csv" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[11px] rounded-xl transition-all shadow-md active:scale-95">
+                        <span>📥</span> Download Template
+                    </a>
+                </div>
+            </div>
+
+            <form id="bulkUploadForm" action="/admin/users/batch-import" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" name="upload_type" id="hiddenUploadTypeField" value="student_data">
+                
+                <div class="p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-center space-y-2 relative hover:bg-slate-100/50 transition-colors group">
+                    <span id="bulkUploadIconIndicator" class="text-3xl block transition-transform group-hover:scale-110">📁</span>
+                    <span id="bulkUploadLabelIndicator" class="text-xs font-bold text-slate-700 block">Drop or Browse Tabular Matrix (.csv)</span>
+                    <span id="bulkHeaderHelperIndicator" class="text-[10px] text-slate-400 font-medium block"></span>
+                    
+                    <input type="file" name="file" id="bulkCsvFileInputElement" accept=".csv" required 
+                           onchange="handleBulkFileSelectionState()" 
+                           class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                </div>
+
+                <div id="uploadProgressContainer" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span id="progressStatusText" style="font-weight: 700; font-size: 13px; color: #334155;">Staging CSV elements...</span>
+                        <span id="progressPercentage" style="font-weight: 800; font-size: 13px; color: #4f46e5;">0%</span>
+                    </div>
+                    <div style="width: 100%; background-color: #e2e8f0; height: 8px; border-radius: 9999px; overflow: hidden;">
+                        <div id="progressBarFill" style="width: 0%; height: 100%; background-color: #4f46e5; transition: width 0.15s ease-out;"></div>
+                    </div>
+                    <div id="uploadFinalSummary" style="display: none; margin-top: 12px; font-size: 12px; color: #065f46; padding: 12px; border-left: 4px solid #10b981; background-color: #ecfdf5; border-radius: 4px;">
+                        <strong>Import Matrix Status:</strong> <span id="summaryMetricsText"></span>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-500 font-medium">
+                    <span class="font-bold text-slate-700 uppercase tracking-wide block text-[10px] mb-1">Privilege Boundary Indicators:</span>
+                    {% if data.get('role') != 'superadmin' %}
+                    <p class="text-amber-600 font-bold">• Scope Boundary: Generated profiles are restricted to the <span class="underline">{{ data.get('department') }}</span> domain layout context.</p>
+                    <p class="text-rose-600 font-semibold">• Security Firewall Rule: Multi-tenant protection routines automatically skip structural row evaluations attempting privilege elevations.</p>
+                    {% else %}
+                    <p class="text-emerald-600 font-semibold">• Superadmin Unrestricted Workspace: Full administrative capabilities are active across all regional departments.</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" id="bulkUploadSubmitButton" disabled 
+                        class="w-full py-3 bg-slate-300 text-slate-500 font-black text-xs rounded-xl shadow-md cursor-not-allowed transition-all">
+                    Execute Batch Import Routine ➔
+                </button>
+            </form>
+        </div>
+
+        <script>
+            document.getElementById('bulkUploadForm').addEventListener('submit', function(e) {
+                e.preventDefault(); // HALT STANDARD FULL REFRESH INTERCEPTION
+
+                const form = e.target;
+                const formData = new FormData(form);
+
+                const progressContainer = document.getElementById('uploadProgressContainer');
+                const statusText = document.getElementById('progressStatusText');
+                const percentText = document.getElementById('progressPercentage');
+                const barFill = document.getElementById('progressBarFill');
+                const summaryBox = document.getElementById('uploadFinalSummary');
+                const summaryText = document.getElementById('summaryMetricsText');
+                const submitBtn = document.getElementById('bulkUploadSubmitButton');
+
+                // 1. Reset component configuration matrices
+                progressContainer.style.display = 'block';
+                summaryBox.style.display = 'none';
+                barFill.style.width = '0%';
+                percentText.innerText = '0%';
+                barFill.style.backgroundColor = '#4f46e5';
+                statusText.innerText = 'Analyzing local CSV row mapping vectors...';
+                submitBtn.setAttribute("disabled", "true");
+                submitBtn.style.opacity = "0.5";
+
+                // 2. Open Native Asynchronous Native Upload Channel
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.lengthComputable) {
+                        // Progress tracks payload transit pipeline stream across network arrays (0% - 75%)
+                        const networkPercent = Math.round((event.loaded / event.total) * 75);
+                        barFill.style.width = networkPercent + '%';
+                        percentText.innerText = networkPercent + '%';
+                        statusText.innerText = 'Streaming file packets to server ledger node...';
+                    }
+                });
+
+                xhr.addEventListener('load', function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+
+                            // 3. Drive instantly to 100% on complete commit
+                            barFill.style.width = '100%';
+                            percentText.innerText = '100%';
+                            statusText.innerText = 'Database entry synchronization complete.';
+
+                            // 4. Expose metrics and structural entries updated tally counter array 
+                            summaryBox.style.display = 'block';
+                            
+                            // Supports fallback formatting for variable API returns (msg/message/updated keys)
+                            const returnMessage = result.msg || result.message || "Batch collection processed successfully.";
+                            const totalRowsModified = (result.updated !== undefined) ? result.updated : "Check logs for totals";
+                            
+                            summaryText.innerHTML = `${returnMessage}<br><span style="font-weight:700; color:#047857; margin-top:4px; display:block;">➔ Number of entries updated: ${totalRowsModified}</span>`;
+                            
+                        } catch (err) {
+                            statusText.innerText = 'Error parsing server data verification stream responses.';
+                            barFill.style.backgroundColor = '#ef4444';
+                        }
+                    } else {
+                        statusText.innerText = `Server error code execution fault: ${xhr.status}`;
+                        barFill.style.backgroundColor = '#ef4444';
+                    }
+                    submitBtn.removeAttribute("disabled");
+                    submitBtn.style.opacity = "1";
+                });
+
+                xhr.addEventListener('error', function() {
+                    statusText.innerText = 'Network connection to parsing orchestrator node broken.';
+                    barFill.style.backgroundColor = '#ef4444';
+                    submitBtn.removeAttribute("disabled");
+                    submitBtn.style.opacity = "1";
+                });
+
+                xhr.open('POST', form.action);
+                xhr.send(formData);
+            });
+        </script>
+
+        <script>
+            const currentAdminDepartmentCtx = "{{ data.get('department', 'Computer Science') }}";
+
+            const bulkUploadRegistry = {
+                student_data: {
+                    hiddenValue: "student_data",
+                    filename: "student_profile_bulk_entry_template.csv",
+                    desc: "Provisions system accounts and injects detailed family, contact, and prior academic benchmarks directly into the student_info profile table matrix.",
+                    headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">display_name,usn_or_id,email,password,department,father_name,mother_name,guardian_name,phone_number,fathers_phone,mothers_phone,address,tenth_percentage,twelfth_percentage,diploma_percentage</code>',
+                    csv: `display_name,usn_or_id,email,department,father_name,mother_name,guardian_name,phone_number,fathers_phone,mothers_phone,address,tenth_percentage,twelfth_percentage,diploma_percentage\n"John Doe","1MS23CS012","john.doe@university.edu","${currentAdminDepartmentCtx}","Robert Doe","Jane Doe","N/A","9876543210","9876543211","9876543212","123 University Campus Lane Road",88.50,91.20,0.00\n"Jane Smith","1MS23CS088","jane.smith@university.edu","${currentAdminDepartmentCtx}","Alan Smith","Mary Smith","N/A","9123456780","9123456781","9123456782","45 Faculty Residential Quarters Block B",94.00,0.00,85.60]`
+                },
+                academic: {
+                    hiddenValue: "academic",
+                    filename: "student_ia_attendance_template.csv",
+                    desc: "Updates running internal assessments (IA), semester timelines, cumulative CGPA, outstanding backlogs, and total attendance variables.",
+                    headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">usn_or_id,semester,overall_attendance,cumulative_cgpa,backlogs_count</code>',
+                    csv: "usn_or_id,semester,overall_attendance,cumulative_cgpa,backlogs_count\n\"1MS23CS012\",3,82.4,8.45,0\n\"1MS23CS088\",3,71.2,6.10,2"
+                },
+                mentor_data: {
+                    hiddenValue: "mentor_data",
+                    filename: "faculty_mentor_bulk_template.csv",
+                    desc: "Registers academic or teaching faculty advisors. Enables target assignment mappings linking students to respective structural nodes.",
+                    headersText: 'Header Mapping Order: <code class="font-mono bg-slate-200 text-slate-700 px-1 py-0.5 rounded">display_name,usn_or_id,email,password,department</code>',
+                    csv: `display_name,usn_or_id,email,password,department\n"Dr. Alan Turing","EMP-2026-041","a.turing@university.edu","EnigmaDecoded88*","${currentAdminDepartmentCtx}"\n"Prof. Jennifer Sterling","EMP-2026-921","j.sterling@university.edu","FacultyShield99$","${currentAdminDepartmentCtx}"`
+                }
+            };
+
+            function switchTemplateContext() {
+                        const selector = document.getElementById("csvTemplateSelector");
+                        const downloadBtn = document.getElementById("templateDownloadBtn");
+                        const descContainer = document.getElementById("templateMetaDescription");
+                        const hiddenInput = document.getElementById("activeUploadType");
+                        const headerCodeBlock = document.getElementById("headerCodeBlock");
+                        
+                        if (!selector || !templateDatabase[selector.value]) return;
+                        
+                        const activeContext = templateDatabase[selector.value];
+                        descContainer.textContent = activeContext.desc;
+                        
+                        if (headerCodeBlock) {
+                            headerCodeBlock.textContent = activeContext.headers;
+                        }
+                        
+                        if (hiddenInput) {
+                            hiddenInput.value = selector.value;
+                        }
+                        
+                        downloadBtn.setAttribute("download", activeContext.filename);
+                        downloadBtn.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(activeContext.csv));
+                    }
+                   
+                    function handleFileSelectionState() {
+                        const fileInput = document.getElementById("csvFileInput");
+                        const statusText = document.getElementById("uploadStatusText");
+                        const iconContainer = document.getElementById("uploadIcon");
+                        const submitBtn = document.getElementById("batchSubmitBtn");
+
+                        if (fileInput.files && fileInput.files.length > 0) {
+                            const uploadedFilename = fileInput.files[0].name;
+                            
+                            statusText.innerHTML = `File Selected: <span class="text-emerald-600 font-mono underline">${uploadedFilename}</span>`;
+                            iconContainer.textContent = "✅";
+                            
+                            submitBtn.removeAttribute("disabled");
+                            submitBtn.className = "w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-colors transform active:scale-[0.99] cursor-pointer opacity-100";
+                        } else {
+                            statusText.textContent = "Select Tabular Roster Matrix (.csv)";
+                            iconContainer.textContent = "📁";
+                            submitBtn.setAttribute("disabled", "true");
+                            submitBtn.className = "w-full py-3 bg-slate-400 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-not-allowed opacity-50";
+                        }
+                    }
+
+                    document.addEventListener("DOMContentLoaded", function() {
+                        switchTemplateContext();
+
+                        document.body.addEventListener("submit", function(event) {
+                            const form = event.target;
+                            if (form.tagName !== "FORM") return;
+
+                            const fileInput = form.querySelector('input[type="file"]');
+                            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                                return; 
+                            }
+
+                            event.preventDefault(); 
+
+                            const selectedFile = fileInput.files[0];
+                            const formData = new FormData(form);
+                            const xhr = new XMLHttpRequest();
+
+                            const progressContainer = form.querySelector("#uploadProgressContainer");
+                            const progressBar = document.getElementById("progressBarFill");
+                            const progressPercent = document.getElementById("progressPercentage");
+                            const progressStatusText = form.querySelector("#progressStatusText");
+                            const submitBtn = form.querySelector('button[type="submit"]');
+
+                            if (progressContainer) progressContainer.style.display = "block";
+                            if (submitBtn) {
+                                submitBtn.setAttribute("disabled", "true");
+                                submitBtn.style.opacity = "0.5";
+                            }
+
+                            let currentVisualPercent = 0;
+                            let incrementalInterval = null;
+                            let targetServerReached = false;
+                            let finalResponsePayload = null;
+
+                            // Estimate dynamic entry counts using rows to determine linear velocity updates
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const rowsCount = Math.max(e.target.result.split("\n").length - 1, 1);
+                                // Allocate roughly 120ms to commit each transaction row
+                                const dynamicStepTime = Math.max(Math.min((rowsCount * 120) / 95, 80), 15);
+
+                                incrementalInterval = setInterval(() => {
+                                    if (currentVisualPercent < 95) {
+                                        currentVisualPercent += 1;
+                                        if (progressBar) progressBar.style.width = currentVisualPercent + "%";
+                                        if (progressPercent) progressPercent.textContent = currentVisualPercent + "%";
+                                        if (progressStatusText) {
+                                            progressStatusText.innerHTML = `⚙️ Processing table updates: Entry block indices staging...`;
+                                        }
+                                    } else {
+                                        // Freeze at 95% until server sends response message
+                                        clearInterval(incrementalInterval);
+                                        if (progressStatusText) {
+                                            progressStatusText.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Staging remaining entries into relational tables...`;
+                                        }
+                                        if (targetServerReached) {
+                                            completeUploadWorkflow();
+                                        }
+                                    }
+                                }, dynamicStepTime);
+                            };
+                            reader.readAsText(selectedFile);
+
+                            function completeUploadWorkflow() {
+                                if (incrementalInterval) clearInterval(incrementalInterval);
+                                
+                                try {
+                                    const res = JSON.parse(finalResponsePayload);
+                                    if (res.success) {
+                                        // Reach 100% ONLY on confirmed backend success
+                                        if (progressBar) {
+                                            progressBar.style.width = "100%";
+                                            progressBar.className = "h-2.5 bg-emerald-500 transition-all duration-300";
+                                        }
+                                        if (progressPercent) progressPercent.textContent = "100%";
+                                        if (progressStatusText) {
+                                            const successMessage =
+                                                res.msg ||
+                                                res.message ||
+                                                "Upload completed successfully";
+
+                                            if (progressBar) {
+                                                progressBar.style.width = "100%";
+                                                progressBar.style.backgroundColor = "#10b981";
+                                            }
+
+                                            if (progressPercent)
+                                                progressPercent.textContent = "100%";
+
+                                            if (progressStatusText)
+                                                progressStatusText.innerHTML =
+                                                    "✅ " + successMessage;
+
+                                            const summaryBox =
+                                                document.getElementById("uploadFinalSummary");
+
+                                            const summaryText =
+                                                document.getElementById("summaryMetricsText");
+
+                                            if(summaryBox){
+                                                summaryBox.style.display = "block";
+                                            }
+
+                                            if(summaryText){
+                                                summaryText.innerHTML =
+                                                    successMessage +
+                                                    "<br><strong>Updated Records:</strong> " +
+                                                    (res.updated || 0);
+                                            }                                       
+                                        }
+                                        
+                                        setTimeout(() => {
+                                            if (submitBtn) {
+                                                submitBtn.removeAttribute("disabled");
+                                                submitBtn.style.opacity = "1";
+                                            }
+                                        }, 1200);
+                                    } else {
+                                        triggerFailureWorkflow(res.message || res.msg || "Operation failed.");
+                                    }
+                                } catch(err) {
+                                    triggerFailureWorkflow("Invalid application server response payload mapping.");
+                                }
+                            }
+
+                            function triggerFailureWorkflow(errorText) {
+                                if (incrementalInterval) clearInterval(incrementalInterval);
+                                if (progressBar) {
+                                    progressBar.style.width = "100%";
+                                    progressBar.className = "h-2.5 bg-rose-500 transition-all duration-300";
+                                }
+                                if (progressPercent) progressPercent.textContent = "Error";
+                                if (progressStatusText) {
+                                    progressStatusText.innerHTML = `❌ <span class="text-rose-600 font-bold">${errorText}</span>`;
+                                }
+                                if (submitBtn) {
+                                    submitBtn.removeAttribute("disabled");
+                                    submitBtn.style.opacity = "1";
+                                }
+                            }
+
+                            xhr.onreadystatechange = function() {
+                                if (xhr.readyState === XMLHttpRequest.DONE) {
+                                    targetServerReached = true;
+                                    finalResponsePayload = xhr.responseText;
+                                    
+                                    // If interval finished pacing or reached the 95% marker, handle termination
+                                    if (currentVisualPercent >= 95 || xhr.status !== 200) {
+                                        if (xhr.status === 200) {
+                                            completeUploadWorkflow();
+                                        } else {
+                                            let errorMsg = "A processing error occurred.";
+                                            try { errorMsg = JSON.parse(xhr.responseText).message || errorMsg; } catch(e){}
+                                            triggerFailureWorkflow(errorMsg);
+                                        }
+                                    }
+                                }
+                            };
+
+                            xhr.open("POST", form.getAttribute("action") || window.location.pathname, true);
+                            xhr.send(formData);
+                        });
+                    });
+                </script>
+        
+
+        {% elif request.query_params.get('action') == 'view_logs' and data.get('role') == 'superadmin' %}
+        <div class="space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Firewall Security Logs</h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Audit track operations context logs recorded across standard runtime environments</p>
+            </div>
+
+            <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 text-white font-bold text-[10px] uppercase tracking-wider font-mono">
+                                <th class="p-3.5">Timestamp</th>
+                                <th class="p-3.5">Event Class</th>
+                                <th class="p-3.5">Severity</th>
+                                <th class="p-3.5">Operational Details Trace</th>
+                                <th class="p-3.5">Vector Source IP</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700 font-semibold font-mono text-[11px]">
+                            {% for log in data.get('logs', []) %}
+                            <tr class="hover:bg-white transition-colors">
+                                <td class="p-3.5 text-slate-400 truncate max-w-[140px]">{{ log.timestamp }}</td>
+                                <td class="p-3.5 text-indigo-600 font-bold">{{ log.event_type }}</td>
+                                <td class="p-3.5">
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase
+                                        {% if log.severity == 'CRITICAL' %}bg-rose-100 text-rose-700 border border-rose-200
+                                        {% elif log.severity == 'WARNING' %}bg-amber-100 text-amber-700 border border-amber-200
+                                        {% else %}bg-slate-100 text-slate-600 border border-slate-200{% endif %}">
+                                        {{ log.severity }}
+                                    </span>
+                                </td>
+                                <td class="p-3.5 text-slate-900 font-sans text-xs max-w-xs truncate">{{ log.details }}</td>
+                                <td class="p-3.5 text-slate-500">{{ log.ip_address }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-slate-400 font-sans font-medium">No recorded system event logs fetched inside the tracking cache buffer window.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% elif request.query_params.get('action') == 'term_shift' and data.get('role') == 'superadmin' %}
+        <div class="max-w-xl space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-rose-600 tracking-tight">Semester Term Shift Interface</h2>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">DANGEROUS ACTION: Increments institutional structures across student registers</p>
+            </div>
+
+            <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-950 text-xs font-bold leading-relaxed space-y-2">
+                <p>⚠️ CRITICAL ATTENTION REQUIRED PRIOR TO DISPATCHING FLUSH LOOPS:</p>
+                <p class="font-medium text-rose-800">This action permanently seals current performance matrix schemas and flushes volatile tracker structures across student registers. Ensure an updated offsite data backup has finished before committing this system state transition.</p>
+            </div>
+
+            <form action="/admin/config/transition-term" method="POST" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide block">Target Semester Term Key Identifier</label>
+                    <input type="text" name="next_term_name" required placeholder="e.g., Academic Year 2026-27 Odd Sem" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+                <div class="flex items-center gap-2 px-1 py-1">
+                    <input type="checkbox" name="confirm_archive" id="confirm_archive" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer">
+                    <label for="confirm_archive" class="text-[11px] font-bold text-slate-500 cursor-pointer select-none leading-none">Confirm generation of historical archives prior to clearing monitoring sets</label>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-rose-600 text-white font-black text-xs rounded-xl shadow-md hover:bg-rose-700 transition-colors transform active:scale-[0.99]">
+                    Authorize Global Term Shift Framework Reset ➔
+                </button>
+            </form>
+        </div>
+        {% endif %}
+        
+        {% if request.query_params.get('action') == 'change_password' %}
+        <div class="max-w-xl space-y-6 animate-fadeIn">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-black text-slate-900 tracking-tight">Modify Security Credentials Matrix</h2>
+                {% if data.get('role') == 'superadmin' %}
+                    <p class="text-xs font-medium text-emerald-600 mt-0.5">Global Clearance: Full access granted to modify any identity record.</p>
+                {% else %}
+                    <p class="text-xs font-medium text-amber-600 mt-0.5">Department Access: You can only alter <strong>Students</strong> and <strong>Mentors</strong> under the <strong>{{ data.get('department') }}</strong> domain layout.</p>
+                {% endif %}
+            </div>
+
+            <form action="/admin/config/change-password" method="POST" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Target Account Email Address</label>
+                    <input type="email" name="target_email" required placeholder="user@university.edu" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Inject New Security Passphrase</label>
+                    <input type="password" name="new_password" required placeholder="••••••••••••" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md transition-all">
+                    Commit Password Override Transaction ➔
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

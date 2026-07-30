@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal Authentication Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-6 font-sans">
+
+    <div class="w-full max-w-md bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xl space-y-6">
+        
+        <div class="text-center space-y-1.5">
+            <div class="inline-flex p-3 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 text-2xl mb-2">
+                🎓
+            </div>
+            <h1 class="text-xl font-black text-slate-900 tracking-tight uppercase">Student Terminal</h1>
+            <p class="text-xs text-slate-400 font-medium">Verify credentials to fetch your Sem 1 - Sem 8 academic matrix records</p>
+        </div>
+
+        <div id="msg-banner" class="hidden p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl text-center"></div>
+
+        <form action="/auth/login/student" method="POST" class="space-y-4">
+            
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Institutional Email Address</label>
+                <input type="email" name="username" required placeholder="student@university.edu" 
+                       class="w-full text-xs font-bold px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-600 transition-all">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Security Passphrase Code</label>
+                <input type="password" name="password" required placeholder="••••••••••••" 
+                       class="w-full text-xs font-bold px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-600 transition-all">
+            </div>
+
+            <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all uppercase tracking-wide">
+                Authorize Session Access ➔
+            </button>
+        </form>
+
+        <div class="text-center border-t border-slate-100 pt-4">
+            <a href="/" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">
+                ← Return to Base Router Hub
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-extract validation strings from url parameter inputs if applicable
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('msg')) {
+            const banner = document.getElementById('msg-banner');
+            banner.innerText = urlParams.get('msg');
+            banner.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

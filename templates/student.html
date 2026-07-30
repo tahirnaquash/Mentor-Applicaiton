@@ -1,0 +1,511 @@
+{% extends "base.html" %}
+{% block title %}Student Matrix Cockpit Terminal{% endblock %}
+{% block nav_action %}
+<div class="flex items-center gap-4">
+    <a href="/auth/logout" class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs rounded-xl transition-colors shadow-xs group">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-rose-600 transition-transform group-hover:translate-x-0.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
+        <span>Logout</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 min-h-[80vh] items-stretch -mt-4 w-full">
+    
+    <aside class="w-full lg:w-72 bg-slate-900 text-slate-300 rounded-3xl p-6 flex flex-col justify-between border border-slate-800 shadow-xl shrink-0">
+        <div class="space-y-6">
+            <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl text-center space-y-3">
+                <span class="block text-xs font-extrabold text-rose-500 tracking-widest uppercase">
+                    🎓 STUDENT VERIFIED
+                </span>
+                
+                <div class="pt-2 border-t border-slate-800/60 space-y-2 text-left">
+                    <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Student Identity</span>
+                        <span class="text-xs font-bold text-slate-200">{{ student.display_name }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider block">University USN / ID</span>
+                        <span class="text-xs font-mono font-bold text-indigo-400">{{ student.usn_or_id }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Department Node</span>
+                        <span class="text-xs font-bold text-slate-300">{{ student.department if student.department else "General Sciences" }}</span>
+                    </div>
+                    <div class="pt-1.5 grid grid-cols-2 gap-2 border-t border-slate-800/40">
+                        <div>
+                            <span class="text-[8px] font-black text-slate-500 uppercase tracking-wider block">Active Term</span>
+                            <span class="text-[11px] font-bold text-emerald-400 font-mono">{{ filters.academic_year }}</span>
+                        </div>
+                        <div>
+                            <span class="text-[8px] font-black text-slate-500 uppercase tracking-wider block">Semester</span>
+                            <span class="text-[11px] font-bold text-indigo-400 font-mono">Sem {{ filters.max_semester }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Student Maps</span>
+                
+                <a href="/dashboard/student?view=performance" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all {% if current_view == 'performance' and request.query_params.get('action') != 'change_password' %}bg-slate-950 text-white shadow-md{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                    <span>📊</span> Performance Matrix
+                </a>
+
+                <a href="/dashboard/student?view=profile" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all {% if current_view == 'profile' and request.query_params.get('action') != 'change_password' %}bg-slate-950 text-white shadow-md{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                    <span>👤</span> View Personal Profile
+                </a>
+                
+                <a href="?action=change_password" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all {% if request.query_params.get('action') == 'change_password' %}bg-rose-600 text-white shadow-md{% else %}text-slate-600 hover:bg-slate-50 hover:text-rose-600{% endif %}">
+                    <span>🔑</span> Update Passphrase
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <section class="flex-1 min-w-0 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm overflow-x-auto">
+        
+        {% if request.query_params.get('action') == 'change_password' %}
+        <div class="max-w-xl space-y-6 animate-fadeIn text-left">
+            <form action="/admin/config/change-password" method="POST" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 tracking-wide block uppercase">Account Email Address</label>
+                    <input type="email" name="target_email" value="{{ student.email }}" readonly class="w-full text-xs font-bold px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 tracking-wide block uppercase">New Passphrase</label>
+                    <input type="password" name="new_password" required placeholder="••••••••••••" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-rose-500 transition-all">
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl uppercase tracking-wider transition-colors shadow-sm">Commit Passphrase</button>
+            </form>
+        </div>
+
+        {% elif current_view == 'profile' %}
+        <div class="space-y-6 animate-fadeIn text-left relative">
+            <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-start">
+                <div>
+                    <h2 class="text-sm font-black text-slate-900 uppercase tracking-tight">Personal Information Registry</h2>
+                    <p class="text-[11px] text-slate-500">Official registry records linked to system token account mapping.</p>
+                </div>
+                <button onclick="toggleProfileModal(true)" class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-xs border border-indigo-100" title="Update Profile Information">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-medium text-xs">
+                
+                <div class="border border-slate-100 rounded-2xl p-4 bg-white shadow-xs space-y-3">
+                    <span class="text-[10px] font-black text-indigo-600 uppercase tracking-wider block border-b pb-1">📞 Communications</span>
+                    <div class="space-y-2 text-slate-600">
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Personal Phone Contact</span><span class="font-mono text-slate-900 font-bold">{{ profile.phone_number if profile and profile.phone_number else '—' }}</span></div>
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Residential Address</span><span class="text-slate-900 font-bold block whitespace-pre-line">{{ profile.address if profile and profile.address else '—' }}</span></div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-100 rounded-2xl p-4 bg-white shadow-xs space-y-3">
+                    <span class="text-[10px] font-black text-indigo-600 uppercase tracking-wider block border-b pb-1">👪 Household Registry</span>
+                    <div class="space-y-2 text-slate-600">
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Father Name</span><span class="text-slate-900 font-bold">{{ profile.father_name if profile and profile.father_name else '—' }}</span></div>
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Father Contact Number</span><span class="font-mono text-slate-900">{{ profile.fathers_phone if profile and profile.fathers_phone else '—' }}</span></div>
+                        <div class="pt-1 border-t border-slate-50"></div>
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Mother Name</span><span class="text-slate-900 font-bold">{{ profile.mother_name if profile and profile.mother_name else '—' }}</span></div>
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Mother Contact Number</span><span class="font-mono text-slate-900">{{ profile.mothers_phone if profile and profile.mothers_phone else '—' }}</span></div>
+                        <div class="pt-1 border-t border-slate-50"></div>
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Guardian Name Reference</span><span class="text-slate-900 font-bold">{{ profile.guardian_name if profile and profile.guardian_name else '—' }}</span></div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-100 rounded-2xl p-4 bg-white shadow-xs space-y-3">
+                    <span class="text-[10px] font-black text-indigo-600 uppercase tracking-wider block border-b pb-1">📈 Historic Benchmarks</span>
+                    <div class="space-y-2 text-slate-600">
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">10th Class Performance</span><span class="font-mono text-slate-900 font-black text-amber-600">{{ profile.tenth_percentage if profile and profile.tenth_percentage else '0.0' }}%</span></div>
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">12th Class Performance</span><span class="font-mono text-slate-900 font-black text-amber-600">{{ profile.twelfth_percentage if profile and profile.twelfth_percentage else '0.0' }}%</span></div>
+                        <div><span class="text-[9px] font-bold text-slate-400 block uppercase">Diploma Performance Track</span><span class="font-mono text-slate-900 font-black text-indigo-600">{{ profile.diploma_percentage if profile and profile.diploma_percentage else 'N/A' }}</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% else %}
+        <div class="space-y-6 animate-fadeIn text-left">
+            
+            {% if alerts.attendance_shortage or alerts.academic_shortage %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% if alerts.attendance_shortage %}
+                <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex gap-3 items-start animate-pulse">
+                    <span class="text-rose-600 text-lg">⚠️</span>
+                    <div>
+                        <h3 class="text-xs font-black text-rose-900 uppercase tracking-wider">Attendance Shortage Flag Raised</h3>
+                        <p class="text-[11px] text-rose-700 mt-0.5">Your recorded log parameter aggregates dropped below the required 75% limit threshold inside one or more registrations.</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if alerts.academic_shortage %}
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 items-start">
+                    <span class="text-amber-500 text-lg">🛑</span>
+                    <div>
+                        <h3 class="text-xs font-black text-amber-900 uppercase tracking-wider">Academic Performance Shortage Warning</h3>
+                        <p class="text-[11px] text-amber-700 mt-0.5">Continuous IA evaluation performance tracks or total backlog counts are sitting underneath baseline benchmark nodes.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %} -->
+            {% if shortage_subjects %}
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5 shadow-xs">
+                    <div class="flex gap-3 items-center mb-3">
+                        <span class="text-rose-600 text-xl">⚠️</span>
+                        <h3 class="text-xs font-black text-rose-900 uppercase tracking-wider">Attendance / Performance Shortage Flag Raised</h3>
+                    </div>
+                    <p class="text-[11px] text-rose-700 mb-4">The system flagged an attendance deficit (&lt; 75%) or a critical academic mark drop (&lt; 20 marks) inside your <strong>Current Semester (Semester {{ filters.max_semester }})</strong> file for the following subjects:</p>
+                    
+                    <div class="overflow-hidden rounded-xl border border-rose-200 bg-white">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="bg-rose-100/40 text-[10px] font-bold text-rose-900 uppercase border-b border-rose-200">
+                                    <th class="px-4 py-2">Subject Code</th>
+                                    <th class="px-4 py-2">Subject Title</th>
+                                    <th class="px-4 py-2">Identified Flag Condition</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-rose-100 text-[11px] text-rose-800 font-medium">
+                                {% for sub in shortage_subjects %}
+                                <tr>
+                                    <td class="px-4 py-2.5 font-mono font-black">{{ sub.code }}</td>
+                                    <td class="px-4 py-2.5">{{ sub.name }}</td>
+                                    <td class="px-4 py-2.5">
+                                        {% for reason in sub.reasons %}
+                                            <span class="inline-block bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md font-bold text-[10px] mr-1">{{ reason }}</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="border-b border-slate-200 flex gap-2">
+                {% for sem in range(1, filters.max_semester + 1) %}
+                    <a href="/dashboard/student?semester={{ sem }}&view=performance" class="px-4 py-2 text-xs font-black rounded-t-xl transition-all border-t border-x {% if filters.selected_semester|int == sem|int %}bg-white text-indigo-600 border-slate-200 relative z-10 -mb-px{% else %}bg-slate-50 text-slate-500 border-transparent{% endif %}">
+                        Semester {{ sem }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-sm font-black text-slate-900 uppercase tracking-tight">Active Academic Performance Matrix</h2>
+                    <p class="text-[11px] text-slate-500">Tracked ledger statistics parameters for Semester {{ filters.selected_semester }} (Cycle {{ filters.academic_year }})</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase block">Pending Backlogs</span>
+                    <span class="text-xs font-mono font-black {% if backlogs > 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">{{ backlogs }} Unresolved</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-xs">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                            <th class="px-5 py-3">Course Specification</th>
+                            <th class="px-4 py-3 text-center">Attendance Log</th>
+                            <th class="px-3 py-3 text-center">IA-1</th>
+                            <th class="px-3 py-3 text-center">IA-2</th>
+                            <th class="px-3 py-3 text-center">IA Avg</th>
+                            <th class="px-4 py-3 text-center">SEE Marks</th>
+                            <th class="px-5 py-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600 font-bold">
+                        {% if courses %}
+                            {% for course in courses %}
+                            <tr class="hover:bg-slate-50/50 {% if course.attendance_raw < 75.0 %}bg-rose-50/20{% endif %}">
+                                <td class="px-5 py-3.5">
+                                    <div class="font-mono text-slate-900 font-black">{{ course.course_code }}</div>
+                                    <div class="text-[11px] text-slate-400 font-normal">{{ course.course_name }}</div>
+                                </td>
+                                <td class="px-4 py-3 text-center font-mono">
+                                    <span class="px-2 py-0.5 rounded {% if course.attendance_raw < 75.0 %}text-rose-600 bg-rose-100/60 font-black{% else %}text-slate-700{% endif %}">
+                                        {{ course.attendance }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 text-center font-mono text-slate-400">{{ course.ia1 }}</td>
+                                <td class="px-3 py-3 text-center font-mono text-slate-400">{{ course.ia2 }}</td>
+                                <td class="px-3 py-3 text-center font-mono text-indigo-600 font-black">{{ course.ia_avg }}</td>
+                                <td class="px-4 py-3 text-center font-mono text-slate-800 font-black">{{ course.see }}</td>
+                                <td class="px-5 py-3 text-center">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide {% if course.result == 'Pass' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% elif course.result == 'Fail' %}bg-rose-50 text-rose-700 border border-rose-200{% else %}bg-amber-50 text-amber-700 border border-amber-100{% endif %}">
+                                        {{ course.result }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="px-5 py-10 text-center text-slate-400 italic">No academic performance matrix logged inside Semester {{ filters.selected_semester }}.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<div id="profileEditModal" class="hidden fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 text-left space-y-4 max-h-[90vh] overflow-y-auto animate-scaleUp">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div>
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-tight">Edit Registry Information</h3>
+                <p class="text-[10px] text-slate-400 font-medium">Overwrites core variables on the 'student_info' table for USN: {{ student.usn_or_id }}</p>
+            </div>
+            <button onclick="toggleProfileModal(false)" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
+        </div>
+
+        <form action="/dashboard/student/profile/update" method="POST" class="space-y-4 text-xs font-bold">
+            <div class="space-y-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block border-b border-slate-100 pb-1">Household Records</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Father's Name</label>
+                        <input type="text" name="father_name" value="{{ profile.father_name if profile and profile.father_name else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Mother's Name</label>
+                        <input type="text" name="mother_name" value="{{ profile.mother_name if profile and profile.mother_name else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Guardian Name</label>
+                        <input type="text" name="guardian_name" value="{{ profile.guardian_name if profile and profile.guardian_name else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block border-b border-slate-100 pb-1">Communication Contact Channels</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Personal Phone</label>
+                        <input type="text" name="phone_number" value="{{ profile.phone_number if profile and profile.phone_number else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Father's Phone</label>
+                        <input type="text" name="fathers_phone" value="{{ profile.fathers_phone if profile and profile.fathers_phone else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Mother's Phone</label>
+                        <input type="text" name="mothers_phone" value="{{ profile.mothers_phone if profile and profile.mothers_phone else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Residential Address</label>
+                    <input type="text" name="address" value="{{ profile.address if profile and profile.address else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block border-b border-slate-100 pb-1">Prior Metrics Track History</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">10th Metric (%)</label>
+                        <input type="number" step="0.01" name="tenth_percentage" value="{{ profile.tenth_percentage if profile and profile.tenth_percentage else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">12th Metric (%)</label>
+                        <input type="number" step="0.01" name="twelfth_percentage" value="{{ profile.twelfth_percentage if profile and profile.twelfth_percentage else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Diploma Metric (%)</label>
+                        <input type="number" step="0.01" name="diploma_percentage" value="{{ profile.diploma_percentage if profile and profile.diploma_percentage else '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex gap-3 border-t border-slate-100">
+                <button type="button" onclick="toggleProfileModal(false)" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl uppercase">Cancel</button>
+                <button type="submit" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl uppercase tracking-wide shadow-md">Save Configuration Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleProfileModal(show) {
+        const modal = document.getElementById('profileEditModal');
+        if (show) {
+            modal.classList.remove('hidden');
+        } else {
+            modal.classList.add('hidden');
+        }
+    }
+</script>
+
+<div id="globalChatbotContainer" class="hidden">
+    <button onclick="toggleChatbotTerminal()" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-2xl transition-all transform hover:scale-105" id="chatbotToggleBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+    </button>
+
+    <div id="chatbotTerminalWindow" class="hidden w-96 h-[450px] bg-white rounded-3xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-scaleUp">
+        <div class="p-4 bg-slate-950 text-white flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span class="text-[11px] font-black uppercase tracking-wider">Student Mind-Wellness Companion</span>
+            </div>
+            <button onclick="toggleChatbotTerminal()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
+        </div>
+
+        <div id="chatbotMsgStream" class="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50 text-[12px] font-medium leading-relaxed">
+            <div class="flex items-start gap-2.5 max-w-[85%]">
+                <div class="bg-indigo-50 border border-indigo-100 text-indigo-900 rounded-2xl rounded-tl-none p-3 shadow-xs">
+                    Hello! I am your clinical support mentor. Tell me what you are experiencing (e.g., exam stress, relationship issues, or sleep difficulties) so we can walk through structured coping exercises together.
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 bg-white border-t border-slate-100 flex gap-2 items-center shrink-0">
+            <input type="text" id="chatbotInputBox" placeholder="Tell me what's on your mind..." class="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 font-medium text-[12px]" onkeydown="if(event.key === 'Enter') sendChatbotStreamMessage()">
+            <button onclick="sendChatbotStreamMessage()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors font-bold text-xs shrink-0">
+                Send
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chatbotNode = document.getElementById('globalChatbotContainer');
+        if (chatbotNode) {
+            chatbotNode.style.position = "fixed";
+            chatbotNode.style.bottom = "24px";
+            chatbotNode.style.right = "24px";
+            chatbotNode.style.zIndex = "999999";
+            
+            const windowPane = document.getElementById('chatbotTerminalWindow');
+            if (windowPane) {
+                windowPane.style.position = "fixed";
+                windowPane.style.bottom = "80px";
+                windowPane.style.right = "24px";
+                windowPane.style.zIndex = "999999";
+            }
+            
+            document.body.appendChild(chatbotNode);
+            chatbotNode.classList.remove('hidden');
+        }
+    });
+
+    function toggleChatbotTerminal() {
+        const windowPane = document.getElementById('chatbotTerminalWindow');
+        if (windowPane) {
+            windowPane.classList.toggle('hidden');
+        }
+    }
+
+    function formatBulletedReply(rawText) {
+        // Splits by the '->' symbol or newlines containing it
+        const points = rawText.split('->').map(p => p.trim()).filter(p => p.length > 0);
+        
+        if (points.length <= 1) {
+            return `<div>${rawText}</div>`;
+        }
+
+        // Formats each point into a clean, readable clinical bulleted list item
+        let listHtml = '<ul class="space-y-2 mt-1.5 list-none pl-0">';
+        points.forEach(point => {
+            listHtml += `
+                <li class="flex items-start gap-2 text-slate-800">
+                    <span class="text-indigo-600 font-bold shrink-0 mt-0.5">✦</span>
+                    <span>${point}</span>
+                </li>`;
+        });
+        listHtml += '</ul>';
+        return listHtml;
+    }
+
+    async function sendChatbotStreamMessage() {
+        const inputField = document.getElementById('chatbotInputBox');
+        const messageText = inputField.value.trim();
+        if (!messageText) return;
+
+        const dynamicStreamCanvas = document.getElementById('chatbotMsgStream');
+
+        const studentBubble = document.createElement('div');
+        studentBubble.className = "flex items-start gap-2.5 max-w-[85%] ml-auto justify-end";
+        studentBubble.innerHTML = `
+            <div class="bg-slate-900 text-white rounded-2xl rounded-tr-none p-3 shadow-xs font-semibold">
+                ${messageText}
+            </div>
+        `;
+        dynamicStreamCanvas.appendChild(studentBubble);
+        inputField.value = '';
+        dynamicStreamCanvas.scrollTop = dynamicStreamCanvas.scrollHeight;
+
+        const systemLoadingBubble = document.createElement('div');
+        systemLoadingBubble.className = "flex items-start gap-2.5 max-w-[85%]";
+        systemLoadingBubble.innerHTML = `
+            <div id="bot-loading-temp" class="bg-indigo-50 border border-indigo-100 text-indigo-400 rounded-2xl rounded-tl-none p-3 italic">
+                Organizing mental health guidelines...
+            </div>
+        `;
+        dynamicStreamCanvas.appendChild(systemLoadingBubble);
+        dynamicStreamCanvas.scrollTop = dynamicStreamCanvas.scrollHeight;
+
+        try {
+            const apiCallResponse = await fetch('/dashboard/student/chatbot/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: messageText })
+            });
+            const operationalDataResult = await apiCallResponse.json();
+
+            const elementToRemove = document.getElementById('bot-loading-temp');
+            if (elementToRemove) elementToRemove.parentElement.remove();
+
+            const botBubble = document.createElement('div');
+            botBubble.className = "flex items-start gap-2.5 max-w-[85%]";
+            
+            let actionHtml = '';
+            if (operationalDataResult.action_url) {
+                actionHtml = `<div class="mt-3 pt-2 border-t border-indigo-100/60"><a href="${operationalDataResult.action_url}" target="_blank" class="inline-flex items-center gap-1 text-xs text-indigo-600 font-bold hover:text-indigo-700 transition-colors">Access Mental Wellness Program →</a></div>`;
+            }
+
+            // Calls formatBulletedReply to transform the -> markers into beautiful UI bullets
+            const formattedReply = formatBulletedReply(operationalDataResult.reply);
+
+            botBubble.innerHTML = `
+                <div class="bg-indigo-50 border border-indigo-100 text-indigo-950 rounded-2xl rounded-tl-none p-3.5 shadow-xs w-full">
+                    <strong class="block text-indigo-950 mb-1.5 font-bold border-b border-indigo-100 pb-1 uppercase tracking-wide text-[10px] text-indigo-500">${operationalDataResult.title}</strong>
+                    ${formattedReply}
+                    ${actionHtml}
+                </div>
+            `;
+            dynamicStreamCanvas.appendChild(botBubble);
+        } catch (error) {
+            const elementToRemove = document.getElementById('bot-loading-temp');
+            if (elementToRemove) elementToRemove.parentElement.remove();
+            
+            const errorBubble = document.createElement('div');
+            errorBubble.className = "flex items-start gap-2.5 max-w-[85%]";
+            errorBubble.innerHTML = `
+                <div class="bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl rounded-tl-none p-3">
+                    System synchronization delay. Please try resending your thought.
+                </div>
+            `;
+            dynamicStreamCanvas.appendChild(errorBubble);
+        }
+
+        dynamicStreamCanvas.scrollTop = dynamicStreamCanvas.scrollHeight;
+    }
+</script>
+{% endblock %}

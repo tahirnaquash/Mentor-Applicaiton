@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Security & Wellbeing Vault{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 min-h-[80vh] items-stretch -mt-4">
+    
+    <aside class="w-full lg:w-72 bg-white/80 backdrop-blur-md text-slate-800 rounded-3xl p-6 flex flex-col justify-between border border-slate-200 shadow-xl shrink-0 hover:border-slate-300 transition-all duration-300">
+        <div class="space-y-6">
+            <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl text-center">
+                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Firewall Shield</span>
+                <span class="inline-block mt-1.5 px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md font-black text-[9px] tracking-wider uppercase">
+                    🔒 VAULT SECTOR ACTIVE
+                </span>
+            </div>
+
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block px-2 mb-2">Vault Directories</span>
+                <a href="/dashboard/counselor" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-white bg-amber-600 shadow-sm shadow-amber-600/10">
+                    <span>🛡️</span> Security Case Tracks
+                </a>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-800 flex items-center justify-between mt-6">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-black text-white text-xs shrink-0 font-mono">
+                    C
+                </div>
+                <div class="truncate">
+                    <p class="text-xs font-black text-white truncate leading-tight">Advisor Agent</p>
+                    <p class="text-[9px] text-slate-500 font-mono tracking-wider uppercase mt-0.5">Privacy Domain</p>
+                </div>
+            </div>
+            <a href="/auth/logout" class="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-rose-400 transition-colors shrink-0" title="Disconnect Lock Grid">
+                🚪
+            </a>
+        </div>
+    </aside>
+
+    <section class="flex-1 space-y-6">
+        
+        <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden">
+            <div class="space-y-1.5">
+                <span class="inline-flex items-center px-2.5 py-0.5 bg-amber-50 border border-amber-200 rounded text-[9px] font-black tracking-wider text-amber-700 uppercase">
+                    Institutional Wellbeing Control
+                </span>
+                <h1 class="text-2xl font-black tracking-tight text-slate-900 uppercase">Anonymized Case Track Vault</h1>
+                <p class="text-xs font-medium text-slate-500 leading-relaxed max-w-xl">
+                    Process critical campus wellbeing signals under absolute end-to-end data encryption conditions. Track high-priority assistance requests while shielding user privacy identities.
+                </p>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 min-w-[160px] flex items-center gap-4 shadow-2xs shrink-0">
+                <div class="w-10 h-10 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-md shadow-3xs">🗝️</div>
+                <div>
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Vault Subnodes</span>
+                    <span class="text-md font-black text-slate-900 font-mono block mt-0.5">{{ data.active_cases }} Tracks</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-3xl shadow-xs overflow-hidden">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200/80">
+                <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Secured Incident Registry Logs</h3>
+                <p class="text-[10px] font-medium text-slate-400 mt-0.5">Strict privacy protocols active — All access tokens are signed on the hardware stack.</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-300 font-bold border-b border-slate-800">
+                            <th class="px-6 py-3.5 text-left font-black text-[9px] uppercase tracking-wider">Case Token ID</th>
+                            <th class="px-6 py-3.5 text-left font-black text-[9px] uppercase tracking-wider">Anonymized System Trigger</th>
+                            <th class="px-6 py-3.5 text-left font-black text-[9px] uppercase tracking-wider">Operational Strategy Route</th>
+                            <th class="px-6 py-3.5 text-right font-black text-[9px] uppercase tracking-wider">Badge Level</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                        {% for log in data.logs %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-6 py-4 font-mono font-bold text-indigo-600 text-xs tracking-wide">{{ log.case_id }}</td>
+                            <td class="px-6 py-4 font-black text-slate-900 text-sm uppercase">{{ log.trigger }}</td>
+                            <td class="px-6 py-4 text-slate-500 font-semibold text-xs">{{ log.status }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-500 text-white shadow-3xs">
+                                    {{ log.badge }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-12 text-center text-slate-400 font-bold italic bg-slate-50/50">No encrypted incident monitoring items match active keys.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

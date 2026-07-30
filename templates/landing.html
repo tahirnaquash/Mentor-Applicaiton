@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}MentorMatch - Executive 1-on-1 Mentorship Portal{% endblock %}
+
+{% block nav_action %}
+<button onclick="togglePortalModal(true)" class="px-5 py-2.5 bg-brand-600 text-white font-black text-xs rounded-xl shadow-md shadow-brand-500/10 hover:bg-brand-700 hover:shadow-lg transition-all duration-300 uppercase tracking-wider font-display active:scale-95 cursor-pointer">
+    Secure Access Gateway ➔
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-16 py-6 max-w-6xl mx-auto">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+        <div class="lg:col-span-7 space-y-6">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 border border-brand-100 rounded-lg text-[9px] font-black tracking-widest text-brand-600 uppercase">
+                <span class="w-1 h-1 rounded-full bg-brand-500 animate-pulse"></span> Mentor-Mentee Ecosystem Gateway 
+            </span>
+            <h1 class="text-5xl lg:text-7xl font-display font-black tracking-tight text-slate-900 leading-none uppercase">
+                1-ON-1<br><span class="bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent">MENTORSHIP</span>
+            </h1>
+            <p class="text-[13px] text-slate-500 font-medium leading-relaxed max-w-xl text-justify">
+                Welcome to the 1-on-1 Mentorship Platform, a dedicated space designed to connect students with mentors for personalized academic, professional, and personal development support. Our platform fosters meaningful mentor-mentee relationships that help students overcome challenges, set achievable goals, and unlock their full potential.
+            </p>
+            
+            <div class="p-5 border border-slate-200/60 bg-white/60 backdrop-blur-xs rounded-2xl space-y-2 max-w-xl shadow-xs">
+                <h2 class="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    🎯 Our Mission
+                </h2>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed text-justify">
+                    To create a supportive learning environment where every student has access to dedicated mentorship, enabling them to make informed decisions, develop essential skills, and achieve academic and professional success.
+                </p>
+            </div>
+            
+            <div class="pt-4 flex flex-wrap gap-4 items-center">
+                <button onclick="togglePortalModal(true)" class="px-6 py-4 bg-slate-900 text-white font-black text-xs rounded-xl shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition-all cursor-pointer font-display active:scale-95">
+                    Initialize Session Interface
+                </button>
+                <h3 class="text-xs font-semibold text-slate-400 italic">
+                    "One Mentor. One Student. Unlimited Possibilities."
+                </h3>
+            </div>
+        </div>
+
+        <div class="lg:col-span-5 grid grid-cols-2 gap-4">
+            <div class="bg-white/80 border border-slate-200/60 p-6 rounded-2xl shadow-xs hover:border-brand-300 hover:shadow-md transition-all duration-300 group">
+                <span class="text-[9px] font-black font-mono text-slate-400 uppercase tracking-widest block">Retention Core</span>
+                <span class="text-3xl font-display font-black text-slate-900 block mt-1 group-hover:text-brand-600 transition-colors">99.4%</span>
+                <p class="text-[10px] text-slate-400 font-medium mt-1 leading-normal">Retention analytics optimization matrix.</p>
+            </div>
+            <div class="bg-white/80 border border-slate-200/60 p-6 rounded-2xl shadow-xs hover:border-brand-300 hover:shadow-md transition-all duration-300 group">
+                <span class="text-[9px] font-black font-mono text-brand-400 uppercase tracking-widest block">Response Matrix</span>
+                <span class="text-3xl font-display font-black text-brand-600 block mt-1">&lt; 45ms</span>
+                <p class="text-[10px] text-slate-400 font-medium mt-1 leading-normal">Hardware processing acceleration active.</p>
+            </div>
+            <div class="bg-white/80 border border-slate-200/60 p-6 rounded-3xl col-span-2 shadow-xs hover:border-brand-300 hover:shadow-md transition-all duration-300 flex items-center justify-between gap-6 group">
+                <div class="space-y-1">
+                    <span class="text-[9px] font-black font-mono text-emerald-500 uppercase tracking-widest block">Infrastructure Shield</span>
+                    <span class="text-sm font-display font-black text-slate-900 uppercase">End-to-End Encryption</span>
+                </div>
+                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 border border-emerald-100/50 rounded-xl flex items-center justify-center text-md font-bold shadow-xs">🔒</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Glassmorphic selection portal modal -->
+    <div id="portalModal" class="hidden fixed inset-0 bg-slate-950/20 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+        <div class="bg-white/90 border border-slate-200/80 rounded-3xl w-full max-w-md p-8 shadow-2xl relative space-y-6 animate-fade-in">
+            
+            <button onclick="togglePortalModal(false)" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold font-mono transition-colors cursor-pointer" title="Close Workspace Layer">✕</button>
+            
+            <div class="space-y-1">
+                <span class="px-2.5 py-0.5 bg-brand-50 border border-brand-100 text-brand-700 font-black text-[9px] tracking-wider uppercase rounded-md">Identity Gateway Selection</span>
+                <h3 class="text-xl font-display font-black text-slate-900 tracking-tight uppercase mt-2">Verify Workspace Target</h3>
+                <p class="text-xs font-semibold text-slate-400">Select your active functional permission matrix</p>
+            </div>
+
+            <div class="space-y-3">
+                <a href="/auth/login/student" class="flex items-center justify-between p-4 border border-slate-200/60 bg-white/80 rounded-2xl hover:bg-brand-50/40 hover:border-brand-300 transition-all group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-md bg-white border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center shadow-3xs group-hover:scale-105 transition-all">🎓</span>
+                        <span class="text-xs font-black text-slate-700 group-hover:text-slate-900 uppercase tracking-tight">Student Dashboard Hub</span>
+                    </div>
+                    <span class="text-xs text-slate-300 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all">➔</span>
+                </a>
+
+                <a href="/auth/login/mentor" class="flex items-center justify-between p-4 border border-slate-200/60 bg-white/80 rounded-2xl hover:bg-brand-50/40 hover:border-brand-300 transition-all group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-md bg-white border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center shadow-3xs group-hover:scale-105 transition-all">👨‍🏫</span>
+                        <span class="text-xs font-black text-slate-700 group-hover:text-slate-900 uppercase tracking-tight">Faculty Mentor Workspace</span>
+                    </div>
+                    <span class="text-xs text-slate-300 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all">➔</span>
+                </a>
+                
+                <a href="/auth/login/counselor" class="flex items-center justify-between p-4 border border-slate-200/60 bg-white/80 rounded-2xl hover:bg-brand-50/40 hover:border-brand-300 transition-all group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-md bg-white border border-slate-200 w-8 h-8 rounded-lg flex items-center justify-center shadow-3xs group-hover:scale-105 transition-all">🛡️</span>
+                        <span class="text-xs font-black text-slate-700 group-hover:text-slate-900 uppercase tracking-tight">Encrypted Counselor Vault</span>
+                    </div>
+                    <span class="text-xs text-slate-300 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all">➔</span>
+                </a>
+                
+                <a href="/auth/login/admin" class="flex items-center justify-between p-4 bg-slate-900 border border-slate-950 rounded-2xl hover:bg-slate-800 transition-all group shadow-md shadow-slate-900/10">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-md bg-slate-800 border border-slate-700 w-8 h-8 rounded-lg flex items-center justify-center">⚙️</span>
+                        <span class="text-xs font-black text-white uppercase tracking-tight">Root System Admin Console</span>
+                    </div>
+                    <span class="text-xs text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all">➔</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function togglePortalModal(visible) {
+    const targetModal = document.getElementById('portalModal');
+    if (visible) {
+        targetModal.classList.remove('hidden');
+    } else {
+        targetModal.classList.add('hidden');
+    }
+}
+</script>
+{% endblock %}

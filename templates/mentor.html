@@ -1,0 +1,806 @@
+{% extends "base.html" %}
+{% block title %}Mentor Framework Matrix Control{% endblock %}
+
+{% block nav_action %}
+<div class="flex items-center gap-4">
+    <a href="/auth/logout" class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs rounded-xl transition-colors shadow-xs group">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-rose-600 transition-transform group-hover:translate-x-0.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
+        <span>Logout</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 min-h-[80vh] items-stretch -mt-4 w-full">
+    
+    <!-- SIDEBAR NAVIGATION BAR MODULE -->
+    <aside class="w-full lg:w-72 bg-slate-900 text-slate-300 rounded-3xl p-6 flex flex-col justify-between border border-slate-800 shadow-xl shrink-0">
+        <div class="space-y-6">
+            <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl text-center space-y-3">
+                <span class="block text-xs font-extrabold text-teal-400 tracking-widest uppercase">
+                    🎓 FACULTY VERIFIED
+                </span>
+                
+                <div class="pt-2 border-t border-slate-800/60 space-y-2 text-left">
+                    <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Faculty Identity</span>
+                        <span class="text-xs font-bold text-slate-200">{{ mentor.display_name if mentor.display_name else mentor.email }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Official Employee ID</span>
+                        <span class="text-xs font-mono font-bold text-indigo-400">{{ mentor.usn_or_id }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Department Node</span>
+                        <span class="text-xs font-bold text-slate-300">{{ mentor.department if mentor.department else "General Sciences" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <a href="/dashboard/mentor?view=cohort" 
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all {% if not request.query_params.get('view') or request.query_params.get('view') == 'cohort' %}bg-slate-950 text-white shadow-md{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white{% endif %}">
+                    <span>📋</span> Assigned Roster Cohort
+                </a>
+                <a href="/dashboard/mentor?view=profile" 
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all {% if request.query_params.get('view') == 'profile' %}bg-slate-950 text-white shadow-md{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <span>ℹ️</span> Faculty Profile Node
+                </a>
+                <a href="/dashboard/mentor?view=mentee_analytics" 
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all {% if request.query_params.get('view') == 'mentee_analytics' %}bg-slate-950 text-white shadow-md{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <span>📈</span> Mentee Lifecycle Analytics
+                </a>                
+                <a href="/dashboard/mentor?view=interactions" 
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black transition-all {% if request.query_params.get('view') == 'interactions' %}bg-slate-950 text-white shadow-md{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white{% endif %}">
+                    <span>💬</span> Mentoring Interactions
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN INTERACTIVE OPERATIONS CANVAS -->
+    <main class="flex-1 min-w-0 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm overflow-hidden flex flex-col">
+        <div class="space-y-6 text-left h-full flex flex-col justify-between">
+            
+            
+
+            {# ========================================================= #}
+            {# VIEW A: DEFAULT ASSIGNED COHORT VIEW SHEET                #}
+            {# ========================================================= #}
+            {% if not request.query_params.get('view') or request.query_params.get('view') == 'cohort' %}
+            <!-- Context Header Matrix -->
+            <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
+                <div>
+                    <h2 class="text-sm font-black text-slate-900 uppercase tracking-tight">
+                        {% if request.query_params.get('view') == 'interactions' %}Mentoring Session Logs Hub{% else %}Mentoring Operational Control{% endif %}
+                    </h2>
+                    <p class="text-[11px] text-slate-500">
+                        {% if request.query_params.get('view') == 'interactions' %}Create interaction records or check communication data loops metrics timeline.{% else %}Maintain oversight across active student clusters. Evaluate threat-boundary metrics.{% endif %}
+                    </p>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl p-3 min-w-[140px] flex items-center gap-3 shadow-xs shrink-0">
+                    <div class="text-lg">📊</div>
+                    <div>
+                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Assigned Size</span>
+                        <span class="text-xs font-mono font-black text-slate-900">{{ data.cohort_size }} Entries</span>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-4 flex-1 flex flex-col justify-start">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 shrink-0">
+                    <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Assigned Cohort Performance Ledger</h2>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Automated screening triggers: Attendance &lt; 75% or CGPA &lt; 6.5</p>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-xs flex-1">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                                <th class="px-5 py-3">USN / ID</th>
+                                <th class="px-4 py-3">Student Name</th>
+                                <th class="px-4 py-3">Department</th>
+                                <th class="px-4 py-3 text-center">Avg Attendance</th>
+                                <th class="px-4 py-3 text-center">Cumulative CGPA</th>
+                                <th class="px-4 py-3 text-center">Risk Parameter Status</th>
+                                <th class="px-5 py-3 text-right">Counselor Mapping</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-600 font-bold">
+                            {% if cohort %}
+                                {% for row in cohort %}
+                                <tr class="hover:bg-slate-50/50 {% if row.color == 'red' %}bg-rose-50/15{% endif %}">
+                                    <td class="px-5 py-3.5 font-mono text-slate-400 font-bold">{{ row.usn }}</td>
+                                    <td class="px-4 py-3 font-black text-slate-900 text-[13px]">{{ row.name }}</td>
+                                    <td class="px-4 py-3 font-medium text-slate-500">{{ row.department }}</td>
+                                    <td class="px-4 py-3 text-center font-mono">
+                                        <span class="px-2 py-0.5 rounded {% if row.attendance < 75.0 %}text-rose-600 bg-rose-100/60 font-black{% else %}text-slate-700{% endif %}">
+                                            {{ row.attendance }}%
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-mono">
+                                        <span class="px-2 py-0.5 rounded {% if row.cgpa < 6.5 %}text-rose-600 bg-rose-100/60 font-black{% else %}text-slate-700{% endif %}">
+                                            {{ row.cgpa }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide border {% if row.color == 'red' %}bg-rose-50 border-rose-200 text-rose-700{% elif row.color == 'amber' %}bg-amber-50 border-amber-200 text-amber-700{% else %}bg-emerald-50 border-emerald-200 text-emerald-700{% endif %}">
+                                            {{ row.risk }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3 text-right">
+                                        {% if row.counselor_status == 'Transferred to Counselor' %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                            Sent to Counselor
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide bg-slate-100 text-slate-500 border border-slate-200">
+                                            Internal Monitor
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="px-5 py-10 text-center text-slate-400 italic font-bold bg-slate-50/50">
+                                        No assigned cohort record sequences map onto your supervisor node profile.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ========================================================= #}
+            {# VIEW B: REPLACEMENT MENTORING INTERACTIONS ROW VIEW MATRIX#}
+            {# ========================================================= #}
+            {% if request.query_params.get('view') == 'interactions' %}
+            <div class="grid grid-cols-2 xl:grid-cols-12 gap-6 items-stretch flex-1 min-h-0 w-full">
+                
+                <!-- Interaction Log Entry Inputs Panel -->
+                <div class="xl:col-span-6 bg-slate-50 border border-slate-200 rounded-2xl p-5 overflow-y-auto flex flex-col max-h-[100vh]">
+                    <div class="border-b border-slate-200 pb-3 mb-4">
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Log New Interaction</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Session Reporting Unit</p>
+                    </div>
+
+                    <form id="interactionForm" onsubmit="submitInteractionReport(event)" class="space-y-4">
+                        <input type="hidden" name="mentor_id" value="{{ mentor.usn_or_id }}">
+
+                        <div class="space-y-1 bg-white p-3 rounded-xl border border-slate-200">
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Current Academic Cycle</label>
+                            <span id="academicYearDisplay" class="text-xs font-mono font-black text-slate-700"></span>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Assigned Mentee Target</label>
+                            <select id="studentSelect" name="student_id" required onchange="fetchMenteeReportsHistory(this.value)" class="w-full text-xs font-bold px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all">
+                                <option value="" disabled selected>-- Choose from Active Cohort Roster --</option>
+                                {% if cohort %}
+                                    {% for student in cohort %}
+                                        <option value="{{ student.usn }}">{{ student.name }} ({{ student.usn }})</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Current Semester</label>
+                            <input type="text" id="studentSemester" name="current_semester" readonly required
+                                class="w-full text-xs font-mono font-bold px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500" 
+                                placeholder="Auto-fetched...">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Execution Timestamp (Un-editable)</label>
+                            <input type="text" id="liveTimestamp" readonly class="w-full text-xs font-mono font-bold px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed outline-none select-none">
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Discussion Points Matrix</label>
+                            <textarea name="discussion_points" required rows="3" placeholder="Document academic goals, targets, milestones..." class="w-full text-xs p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"></textarea>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Action Roadmap Items</label>
+                            <textarea name="action_items" rows="2" placeholder="Tasks assigned before next check-in..." class="w-full text-xs p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer">
+                            Commit Report Record ➔
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Live Historical Timeline Stream -->
+                <div class="xl:col-span-6 border border-slate-200 rounded-2xl p-5 flex flex-col bg-white overflow-y-auto flex flex-col max-h-[100vh]">
+                    <div class="border-b border-slate-100 pb-3 mb-4 shrink-0 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Reports History Timeline</h3>
+                            <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Linked Records per Selected Mentee</p>
+                        </div>
+                        <div>
+                            <select id="academicYearFilter" onchange="const activeStudent = document.getElementById('studentSelect').value; if(activeStudent) fetchMenteeReportsHistory(activeStudent);" class="text-[11px] font-bold px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-700 outline-none">
+                                </select>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-100 overflow-y-auto flex-1 bg-slate-50/30">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-100 text-[9px] font-black uppercase text-slate-500 tracking-wider sticky top-0 z-10">
+                                <tr>
+                                    <th class="p-3">Timestamp</th>
+                                    <th class="p-3">Discussion Points</th>
+                                    <th class="p-3">Action Items</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menteeHistoryLogContainer">
+                                <tr>
+                                    <td colspan="3" class="p-8 text-center text-slate-400 italic font-medium">Please select a student name from the active cohort dropdown list to populate historical logs.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const now = new Date();
+                    const currentYear = now.getFullYear();
+                    const currentMonth = now.getMonth(); 
+                    let acadYearText = (currentMonth >= 6) ? `${currentYear} - ${currentYear + 1}` : `${currentYear - 1} - ${currentYear}`;
+                    
+                    const yearElem = document.getElementById('academicYearDisplay');
+                    const timeElem = document.getElementById('liveTimestamp');
+                    
+                    if (yearElem) yearElem.innerText = acadYearText + " Academic Year";
+                    if (timeElem) timeElem.value = now.toLocaleString();
+
+                    // Dynamically build Filter Dropdown options and auto-select current year
+                    const filterSelect = document.getElementById('academicYearFilter');
+                    if (filterSelect) {
+                        filterSelect.innerHTML = `
+                            <option value="${acadYearText}" selected>${acadYearText}</option>
+                            <option value="${currentYear - 1} - ${currentYear}">${currentYear - 1} - ${currentYear}</option>
+                            <option value="${currentYear - 2} - ${currentYear - 1}">${currentYear - 2} - ${currentYear - 1}</option>
+                        `;
+                    }
+                });
+
+                async function fetchMenteeReportsHistory(studentId) {
+                    const historyContainer = document.getElementById('menteeHistoryLogContainer');
+                    const semesterInput = document.getElementById('studentSemester');
+                    const selectedYear = document.getElementById('academicYearFilter')?.value || "";
+                    
+                    if (!studentId) return;
+
+                    // Isolate Semester Fetching Task safely
+                    if (semesterInput) {
+                        semesterInput.value = "Fetching...";
+                        fetch(`/mentor/student-semester/${studentId}`)
+                            .then(res => res.ok ? res.json() : {current_semester: "N/A"})
+                            .then(data => { semesterInput.value = data.current_semester || "N/A"; })
+                            .catch(() => { semesterInput.value = "N/A"; });
+                    }
+
+                    // Set UI Loading Indicator Table Row
+                    historyContainer.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="p-8 text-center text-teal-600 font-bold italic animate-pulse">Syncing student database histories...</td>
+                        </tr>
+                    `;
+
+                    try {
+                        // Pass academic_year query parameter directly into URL stream fetch string
+                        const response = await fetch(`/mentor/reports/${studentId}?academic_year=${encodeURIComponent(selectedYear)}`);
+                        
+                        if (!response.ok) {
+                            historyContainer.innerHTML = `
+                                <tr><td colspan="3" class="p-8 text-center text-slate-400 italic font-medium">No historical report entries found for this academic year.</td></tr>
+                            `;
+                            return;
+                        }
+
+                        const data = await response.json();
+
+                        if (!data || data.length === 0) {
+                            historyContainer.innerHTML = `
+                                <tr><td colspan="3" class="p-8 text-center text-slate-400 italic font-medium">No historical report entries found for this academic year.</td></tr>
+                            `;
+                            return;
+                        }
+
+                        historyContainer.innerHTML = data.map(record => `
+                            <tr class="border-b border-slate-100 bg-white hover:bg-slate-50/50 last:border-none transition-colors">
+                                <td class="p-3 text-[10px] font-mono text-slate-400 whitespace-nowrap align-top">${record.date}</td>
+                                <td class="p-3 text-slate-800 font-medium break-words align-top max-w-[200px]">${record.points}</td>
+                                <td class="p-3 text-slate-500 italic break-words align-top max-w-[150px]">${record.actions}</td>
+                            </tr>
+                        `).join('');
+
+                    } catch (err) {
+                        console.error(err);
+                        historyContainer.innerHTML = `
+                            <tr><td colspan="3" class="p-8 text-center text-slate-400 italic font-medium">No historical report entries found for this academic year.</td></tr>
+                        `;
+                    }
+                }
+
+                async function submitInteractionReport(e) {
+                    e.preventDefault();
+                    const form = document.getElementById('interactionForm');
+                    const formData = new FormData(form);
+                    const activeStudent = document.getElementById('studentSelect').value;
+
+                    try {
+                        const response = await fetch('/mentor/reports/save', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        if (response.ok && result.status === "success") {
+                            alert("Mentoring report recorded inside database successfully!");
+                            form.reset();
+                            
+                            document.getElementById('liveTimestamp').value = new Date().toLocaleString();
+                            document.getElementById('studentSelect').value = activeStudent;
+                            fetchMenteeReportsHistory(activeStudent);
+                        } else {
+                            alert("Error recording report metrics: " + (result.message || "Payload anomaly"));
+                        }
+                    } catch (err) {
+                        alert("Network connection failure during block transmission.");
+                    }
+                }
+            </script>
+            {% endif %}
+            {% if request.query_params.get('view') == 'profile' %}
+            <section class="flex-1 min-w-0 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                <div class="space-y-6 text-left">
+                    {% if request.query_params.get('success') == 'ProfileUpdated' %}
+                    <div id="success-alert" class="flex items-center justify-between p-4 mb-4 text-emerald-800 border border-emerald-200 bg-emerald-50 rounded-2xl transition-all animate-fadeIn shadow-xs">
+                        <div class="flex items-center gap-3">
+                            <div class="p-1.5 bg-emerald-500 text-white rounded-xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black uppercase tracking-tight">Database Synchronized</h4>
+                                <p class="text-[11px] text-emerald-600 font-medium">Faculty identity attributes and professional experience metrics updated successfully.</p>
+                            </div>
+                        </div>
+                        <button onclick="dismissAlert()" class="text-emerald-400 hover:text-emerald-600 cursor-pointer text-xs font-bold p-1">✕</button>
+                    </div>
+                    {% endif %}            
+                    <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-center gap-4">
+                        <div>
+                            <h2 class="text-sm font-black text-slate-900 uppercase tracking-tight">Faculty Registry Overview</h2>
+                            <p class="text-[11px] text-slate-500">Manage institutional records, experience metrics, and government credentials linked to your profile node.</p>
+                        </div>
+                        
+                        <button onclick="toggleFacultyModal(true)" class="p-2.5 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-700/60 rounded-xl shadow-xs transition-all cursor-pointer group" title="Modify Details">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 transition-transform group-hover:scale-110">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <div class="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-3">
+                            <h3 class="text-xs font-black text-teal-600 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Core Identity Records
+                            </h3>
+                            <div class="space-y-2 border-t border-slate-200/60 pt-2.5 text-xs font-bold">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Profile Registered Name</span>
+                                    <span class="text-slate-800 text-[13px] font-black">{{ mentor_details.name if mentor_details.name else '—' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Employee Official ID</span>
+                                    <span class="text-indigo-600 font-mono text-[12px] block">{{ mentor_details.employee_id }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Gender / Salutation</span>
+                                    <span class="text-slate-700 text-[12px] block">{{ mentor_details.gender if mentor_details.gender else '—' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-3">
+                            <h3 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Academic & Department Bounds
+                            </h3>
+                            <div class="space-y-2 border-t border-slate-200/60 pt-2.5 text-xs font-bold">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Department Domain Name</span>
+                                    <span class="text-slate-700 text-[12px] block">{{ mentor_details.department_name }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Designation Rank</span>
+                                    <span class="text-slate-700 text-[12px] block">{{ mentor_details.designation }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Highest Academic Qualification</span>
+                                    <span class="text-slate-700 text-[12px] block">{{ mentor_details.highest_qualification if mentor_details.highest_qualification else '—' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-3">
+                            <h3 class="text-xs font-black text-amber-600 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Communication Channels
+                            </h3>
+                            <div class="space-y-2 border-t border-slate-200/60 pt-2.5 text-xs font-bold">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Official Email Address</span>
+                                    <span class="text-slate-700 text-[12px] block">{{ mentor_details.email }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Personal Phone Number</span>
+                                    <span class="text-slate-700 font-mono text-[12px] block">{{ mentor_details.phone_number if mentor_details.phone_number else '—' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-3">
+                            <h3 class="text-xs font-black text-rose-600 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Government Verification Records
+                            </h3>
+                            <div class="space-y-2 border-t border-slate-200/60 pt-2.5 text-xs font-bold">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Permanent Account Number (PAN)</span>
+                                    <span class="text-slate-700 font-mono text-[12px] tracking-wide block">{{ mentor_details.pan_card_number if mentor_details.pan_card_number else '—' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Aadhaar Card UID</span>
+                                    <span class="text-slate-700 font-mono text-[12px] tracking-wide block">{{ mentor_details.aadhaar_card_number if mentor_details.aadhaar_card_number else '—' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-4 md:col-span-2">
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-800"></span> Tenure Timeline & Operational Experience Metrics
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200/60 pt-3 text-xs font-bold">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Date of Joining</span>
+                                    <span class="text-slate-700 font-mono text-[12px] block">{{ mentor_details.date_of_joining.strftime('%Y-%m-%d') if mentor_details.date_of_joining else '—' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block uppercase">Tenure Status Inside Current Institution</span>
+                                    <span class="text-slate-700 font-mono text-[12px] block">{{ mentor_details.experience_in_college }} Years</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 bg-slate-100/60 p-3 rounded-xl border border-slate-200/40 text-center font-mono">
+                                <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                    <span class="text-[8px] font-black text-slate-400 block uppercase font-sans">Teaching</span>
+                                    <span class="text-xs font-black text-slate-800">{{ mentor_details.teaching_experience_years }} Yrs</span>
+                                </div>
+                                <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                    <span class="text-[8px] font-black text-slate-400 block uppercase font-sans">Research</span>
+                                    <span class="text-xs font-black text-slate-800">{{ mentor_details.research_experience_years }} Yrs</span>
+                                </div>
+                                <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                    <span class="text-[8px] font-black text-slate-400 block uppercase font-sans">Industry</span>
+                                    <span class="text-xs font-black text-slate-800">{{ mentor_details.industry_experience_years }} Yrs</span>
+                                </div>
+                                <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                    <span class="text-[8px] font-black text-slate-400 block uppercase font-sans">Other</span>
+                                    <span class="text-xs font-black text-slate-800">{{ mentor_details.other_experience_years }} Yrs</span>
+                                </div>
+                                <div class="bg-white p-2 rounded-lg border border-slate-300 col-span-2 sm:col-span-1 bg-teal-50/30">
+                                    <span class="text-[8px] font-black text-teal-600 block uppercase font-sans">Total Work</span>
+                                    <span class="text-xs font-black text-teal-700">{{ mentor_details.total_work_experience_years }} Yrs</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <div id="facultyEditModal" class="hidden fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 text-left space-y-4 max-h-[90vh] overflow-y-auto transform transition-all">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-tight">Modify Profile Configuration</h3>
+                            <p class="text-[10px] text-slate-400 font-medium">Update record parameters mapping to unique employee node: {{ mentor_details.employee_id }}</p>
+                        </div>
+                        <button onclick="toggleFacultyModal(false)" class="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer">✕</button>
+                    </div>
+
+                    <form action="/dashboard/mentor/profile/update" method="POST" class="space-y-4 text-xs font-bold">
+                        
+                        <div class="space-y-2">
+                            <span class="text-[10px] font-black text-teal-600 uppercase tracking-wider block border-b border-slate-100 pb-1">Core Registry Identities</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Full Profile Name</label>
+                                    <input type="text" name="name" value="{{ mentor_details.name if mentor_details.name else '' }}" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:bg-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Gender Structure</label>
+                                    <select name="gender" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:bg-white transition-all">
+                                        <option value="Male" {% if mentor_details.gender == 'Male' %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if mentor_details.gender == 'Female' %}selected{% endif %}>Female</option>
+                                        <option value="Other" {% if mentor_details.gender == 'Other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <span class="text-[10px] font-black text-indigo-600 uppercase tracking-wider block border-b border-slate-100 pb-1">Academic & Department Assignments</span>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Department Domain</label>
+                                    <input type="text" name="department_name" value="{{ mentor_details.department_name }}" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Designation Rank</label>
+                                    <input type="text" name="designation" value="{{ mentor_details.designation }}" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Highest Qualification</label>
+                                    <input type="text" name="highest_qualification" value="{{ mentor_details.highest_qualification if mentor_details.highest_qualification else '' }}" placeholder="M.Tech / Ph.D." class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <span class="text-[10px] font-black text-amber-600 uppercase tracking-wider block border-b border-slate-100 pb-1">Communication channels & Govt Identities</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Contact Phone Number</label>
+                                    <input type="text" name="phone_number" value="{{ mentor_details.phone_number if mentor_details.phone_number else '' }}" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-mono">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">PAN Card Number</label>
+                                    <input type="text" name="pan_card_number" value="{{ mentor_details.pan_card_number if mentor_details.pan_card_number else '' }}" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-mono uppercase">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-1">Aadhaar Card Number</label>
+                                    <input type="text" name="aadhaar_card_number" value="{{ mentor_details.aadhaar_card_number if mentor_details.aadhaar_card_number else '' }}" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-mono">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <span class="text-[10px] font-black text-slate-700 uppercase tracking-wider block border-b border-slate-100 pb-1">Experience Metrics Metric Variables</span>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono">
+                                <div>
+                                    <label class="text-[8px] font-black text-slate-500 uppercase block mb-1 font-sans">Joining Date</label>
+                                    <input type="date" name="date_of_joining" value="{{ mentor_details.date_of_joining.strftime('%Y-%m-%d') if mentor_details.date_of_joining else '' }}" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-center">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] font-black text-slate-500 uppercase block mb-1 font-sans">College Tenure</label>
+                                    <input type="number" name="experience_in_college" value="{{ mentor_details.experience_in_college }}" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-center">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] font-black text-slate-500 uppercase block mb-1 font-sans">Teaching Yrs</label>
+                                    <input type="number" step="0.01" name="teaching_experience_years" value="{{ mentor_details.teaching_experience_years }}" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-center">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] font-black text-slate-500 uppercase block mb-1 font-sans">Research Yrs</label>
+                                    <input type="number" step="0.01" name="research_experience_years" value="{{ mentor_details.research_experience_years }}" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-center">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] font-black text-slate-500 uppercase block mb-1 font-sans">Industry Yrs</label>
+                                    <input type="number" step="0.01" name="industry_experience_years" value="{{ mentor_details.industry_experience_years }}" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-center">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] font-black text-slate-500 uppercase block mb-1 font-sans">Other Yrs</label>
+                                    <input type="number" step="0.01" name="other_experience_years" value="{{ mentor_details.other_experience_years }}" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-center">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 flex gap-3 border-t border-slate-100">
+                            <button type="button" onclick="toggleFacultyModal(false)" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl uppercase transition-colors cursor-pointer">Cancel</button>
+                            <button type="submit" class="flex-1 py-2.5 bg-slate-900 hover:bg-slate-950 text-white rounded-xl uppercase tracking-wide shadow-md transition-colors cursor-pointer">Commit Records</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <script>
+                function toggleFacultyModal(show) {
+                    const modal = document.getElementById('facultyEditModal');
+                    if (modal) {
+                        if (show) {
+                            // Removes 'hidden' and adds modern flex alignment styles to make it visible
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                        } else {
+                            modal.classList.add('hidden');
+                            modal.classList.remove('flex');
+                        }
+                    } else {
+                        console.error("Faculty edit modal element ('facultyEditModal') not found in DOM.");
+                    }
+                }
+                function dismissAlert() {
+                    const alertElement = document.getElementById('success-alert');
+                    if (alertElement) {
+                        alertElement.style.opacity = '0';
+                        setTimeout(() => {
+                            alertElement.remove();
+                            // Clean up the URL query parameters cleanly without refreshing the page
+                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?view=profile";
+                            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+                        }, 200);
+                    }
+                }
+
+                // Optional: Auto-dismiss the message banner frame after 4 seconds
+                document.addEventListener("DOMContentLoaded", function() {
+                    if(document.getElementById('success-alert')) {
+                        setTimeout(dismissAlert, 4000);
+                    }
+                });
+            </script>
+            {% endif %}
+{# ========================================================= #}
+            {# VIEW D: MENTEE LIFECYCLE ANALYTICS MATRIX TIMELINE        #}
+            {# ========================================================= #}
+            {% if request.query_params.get('view') == 'mentee_analytics' %}
+            <section class="flex-1 min-w-0 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6 text-left">
+                <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-sm font-black text-slate-900 uppercase tracking-tight">Mentee Lifecycle Analytics</h2>
+                        <p class="text-[11px] text-slate-500">Isolate specific lifecycle nodes to review internal assessments, external indices, and cumulative backlog thresholds.</p>
+                    </div>
+                    
+                    <form method="GET" action="/dashboard/mentor" class="flex gap-2 w-full sm:w-auto">
+                        <input type="hidden" name="view" value="mentee_analytics">
+                        <select name="selected_student_id" onchange="this.form.submit()" class="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-900 cursor-pointer">
+                            <option value="">-- Select Mentee Node --</option>
+                            {% for student in cohort_list %}
+                                <option value="{{ student.usn }}" {% if selected_student and selected_student.usn_or_id == student.usn %}selected{% endif %}>
+                                    {{ student.usn }} - {{ student.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+
+                {% if selected_student %}
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+                        <div class="px-5 py-3.5 bg-slate-900 text-white flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-black text-teal-400 uppercase tracking-widest block">Core Master Profile</span>
+                                <h3 class="text-xs font-black uppercase">{{ selected_student.display_name or 'Unregistered Name' }}</h3>
+                            </div>
+                            <span class="font-mono text-xs text-slate-300 bg-slate-800 px-3 py-1 rounded-lg border border-slate-700/60 font-bold">{{ selected_student.usn_or_id }}</span>
+                        </div>
+                        
+                        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-6 text-[11px]">
+                            <div class="space-y-2">
+                                <h4 class="text-[10px] font-black uppercase text-slate-400 tracking-wider border-b border-slate-200 pb-1">Communication channels</h4>
+                                <p class="text-slate-700"><span class="font-bold text-slate-500">Email Reference:</span> <span class="font-mono block mt-0.5">{{ selected_student.email }}</span></p>
+                                <p class="text-slate-700"><span class="font-bold text-slate-500">Student Phone:</span> <span class="block mt-0.5 font-bold">{{ selected_student.student_profile.phone_number if selected_student.student_profile else '—' }}</span></p>
+                                <p class="text-slate-700"><span class="font-bold text-slate-500">Department Node:</span> <span class="block mt-0.5 font-bold text-slate-900">{{ selected_student.department or 'General Academic Rosters' }}</span></p>
+                            </div>
+                            <div class="space-y-2">
+                                <h4 class="text-[10px] font-black uppercase text-slate-400 tracking-wider border-b border-slate-200 pb-1">Family & Guardian parameters</h4>
+                                <p class="text-slate-700"><span class="font-bold text-slate-500">Father / Mother:</span> <span class="block mt-0.5">{{ selected_student.student_profile.father_name or '—' }} / {{ selected_student.student_profile.mother_name or '—' }}</span></p>
+                                <p class="text-slate-700"><span class="font-bold text-slate-500">Father Contact/ Mother Contact:</span> <span class="block mt-0.5 font-bold">{{ selected_student.student_profile.fathers_phone or '—' }}/ {{selected_student.student_profile.mothers_phone or '—' }}</span></p>
+                                <p class="text-slate-700"><span class="font-bold text-slate-500">Residential Base:</span> <span class="block mt-0.5 max-w-xs text-slate-600 truncate" title="{{ selected_student.student_profile.address }}">{{ selected_student.student_profile.address or '—' }}</span></p>
+                            </div>
+                            <div class="space-y-2">
+                                <h4 class="text-[10px] font-black uppercase text-slate-400 tracking-wider border-b border-slate-200 pb-1">Historical Entry Metrics</h4>
+                                <p class="text-slate-700"><span class="font-bold text-slate-500">Grade 10 / 12 Threshold:</span> <span class="block mt-0.5 font-mono">{{ selected_student.student_profile.tenth_percentage or '—' }}% / {{ selected_student.student_profile.twelfth_percentage or '—' }}%</span></p>
+                                <div class="pt-1.5">
+                                    <div class="px-3 py-1.5 {% if backlog_count > 0 %}bg-rose-50 border border-rose-200 text-rose-700{% else %}bg-emerald-50 border border-emerald-200 text-emerald-700{% endif %} rounded-xl inline-flex flex-col">
+                                        <span class="text-[8px] font-black uppercase tracking-wider block">Outstanding Backlogs</span>
+                                        <span class="text-sm font-mono font-black mt-0.5">{{ backlog_count }} Courses</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            <div class="space-y-4">
+                <div class="flex flex-wrap border-b border-slate-200 gap-1" id="semester-tabs-header">
+                    {% for sem in semester_records.keys()|sort %}
+                        <button onclick="switchSemesterTab('{{ sem }}')" 
+                                id="tab-btn-{{ sem }}" 
+                                type="button"
+                                class="sem-tab-trigger px-4 py-2.5 font-black uppercase text-[11px] tracking-wider rounded-t-xl transition-all border-b-2 cursor-pointer focus:outline-none">
+                            Semester {{ sem }}
+                        </button>
+                    {% endfor %}
+                </div>
+
+                <div id="semester-tabs-content" class="mt-4">
+                    {% for sem, courses in semester_records.items() %}
+                        <div id="tab-panel-{{ sem }}" class="sem-tab-panel hidden border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-[11px]">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-black uppercase tracking-wider">
+                                            <th class="p-3">Course Code & Name</th>
+                                            <th class="p-3 text-center">Attendance</th>
+                                            <th class="p-3 text-center">IA 1</th>
+                                            <th class="p-3 text-center">IA 2</th>
+                                            <th class="p-3 text-center">IA Avg</th>
+                                            <th class="p-3 text-center">SEE Marks</th>
+                                            <th class="p-3 text-center">Result Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                                        {% for course in courses %}
+                                            <tr class="hover:bg-slate-50/50">
+                                                <td class="p-3 font-bold">
+                                                    <span class="block text-slate-900">{{ course.course_name }}</span>
+                                                    <span class="text-[10px] text-slate-400 font-mono">{{ course.course_code }}</span>
+                                                </td>
+                                                <td class="p-3 text-center font-mono font-bold {% if course.attendance and course.attendance < 75 %}text-rose-600{% else %}text-slate-700{% endif %}">
+                                                    {{ course.attendance if course.attendance is not none else '—' }}%
+                                                </td>
+                                                <td class="p-3 text-center font-mono">{{ course.ia1 if course.ia1 is not none else '—' }}</td>
+                                                <td class="p-3 text-center font-mono">{{ course.ia2 if course.ia2 is not none else '—' }}</td>
+                                                <td class="p-3 text-center font-mono font-bold text-slate-900">{{ course.ia_avg if course.ia_avg is not none else '—' }}</td>
+                                                <td class="p-3 text-center font-mono">{{ course.see if course.see is not none else '—' }}</td>
+                                                <td class="p-3 text-center">
+                                                    {% if course.result == 'PASS' %}
+                                                        <span class="px-2 py-0.5 rounded-md font-bold text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200">PASS</span>
+                                                    {% else %}
+                                                        <span class="px-2 py-0.5 rounded-md font-bold text-[9px] bg-rose-50 text-rose-700 border border-rose-200">FAIL</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+                <div class="text-center py-12 border border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs font-bold bg-white w-full">
+                    Select a mentee from the dropdown configuration menu above to load historical student timelines.
+                </div>
+            {% endif %}
+        </section>
+            {% endif %}
+
+            <script>
+                function switchSemesterTab(activeSemester) {
+                    document.querySelectorAll('.sem-tab-panel').forEach(panel => panel.classList.add('hidden'));
+                    document.querySelectorAll('.sem-tab-trigger').forEach(btn => {
+                        btn.classList.remove('border-slate-950', 'text-slate-950', 'bg-slate-50');
+                        btn.classList.add('border-transparent', 'text-slate-400');
+                    });
+
+                    const targetedPanel = document.getElementById(`tab-panel-${activeSemester}`);
+                    const targetedButton = document.getElementById(`tab-btn-${activeSemester}`);
+                    
+                    if (targetedPanel && targetedButton) {
+                        targetedPanel.classList.remove('hidden');
+                        targetedButton.classList.remove('border-transparent', 'text-slate-400');
+                        targetedButton.classList.add('border-slate-950', 'text-slate-950', 'bg-slate-50');
+                    }
+                }
+
+                document.addEventListener("DOMContentLoaded", function() {
+                    const firstTabBtn = document.querySelector('.sem-tab-trigger');
+                    if (firstTabBtn) {
+                        const initialSemId = firstTabBtn.id.replace('tab-btn-', '');
+                        switchSemesterTab(parseInt(initialSemId));
+                    }
+                });
+            </script>
+        </div>
+    </main>
+</div>
+{% endblock %}

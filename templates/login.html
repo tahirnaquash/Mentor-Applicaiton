@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Secure Access - Gateway{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center relative py-12">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-6 relative z-10">
+        
+        <div class="text-center space-y-1.5">
+            <span class="px-2.5 py-0.5 bg-indigo-600 text-white font-black text-[9px] tracking-widest uppercase rounded-md">
+                Verification Hub
+            </span>
+            <h2 class="text-xl font-black text-slate-900 tracking-tight mt-2 uppercase">Secure Gateway Access</h2>
+            <p class="text-xs font-semibold text-slate-400">Provide active cryptographic workspace credentials</p>
+        </div>
+        
+        <form action="/auth/login/{{ role }}" method="POST" class="space-y-4">
+            <div class="space-y-1.5">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wide">Workspace Email</label>
+                <input name="username" type="email" required placeholder="signature@university.edu"
+                    class="block w-full text-xs font-bold px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wide">Access Passphrase</label>
+                <input name="password" type="password" required placeholder="••••••••"
+                    class="block w-full text-xs font-bold px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all">
+            </div>
+
+            <button type="submit" 
+                class="w-full py-3.5 bg-slate-900 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-[0.99] hover:bg-slate-800 uppercase tracking-wider">
+                Authenticate Workspace Gate ➔
+            </button>
+        </form>
+        
+        <div class="text-center pt-2">
+            <a href="/" class="text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-wider font-mono">
+                ← Abort Routing Request
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

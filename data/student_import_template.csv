@@ -1,0 +1,3 @@
+display_name,usn_or_id,email,password,role,department
+John Doe,1MS23CS012,john.doe@university.edu,stud123,student,Computer Science
+Jane Smith,1MS23CS088,jane.smith@university.edu,stud123,student,Computer Science
